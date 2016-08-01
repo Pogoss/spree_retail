@@ -31,7 +31,7 @@ module Spree
       #       address: {text: ship_address.to_s }
       #   }
       # end
-      if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name)
+      if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user
         order[:firstName] = user.first_name
         order[:lastName] = user.last_name
       end
