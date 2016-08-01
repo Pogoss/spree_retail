@@ -1,0 +1,16 @@
+<%= form_for :state, url: update_states_admin_retail_index_path do |st| %>
+    <div class="col-md-4">
+      <h4>Order Payment Methods:</h4>
+      <%= st.fields_for :payment_method do |p|%>
+          <% Spree::PaymentMethod.pluck(:name).each do |payment_method| %>
+              <div class="form-group">
+                <%= p.label payment_method %>
+                <%= p.select payment_method, options_for_select(@payment_types, Spree::Config[:payment_method] && Spree::Config[:payment_method][payment_method]), {include_blank: true}, class: 'form-control' %>
+              </div>
+          <% end %>
+      <% end %>
+    </div>
+    <div class="col-md-1 col-md-offset-11">
+      <%= submit_tag :update, class: 'form-control btn btn-success' %>
+    </div>
+<% end %>

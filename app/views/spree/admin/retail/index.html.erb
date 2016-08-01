@@ -1,0 +1,36 @@
+<div class="bs-example bs-example-tabs" data-example-id="togglable-tabs">
+  <ul id="myTabs" class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#connection" id="connection-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">States Connection</a></li>
+    <li role="presentation"><a href="#payment_connection" id="payment-connection-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Payment Connection</a></li>
+    <li role="presentation"><a href="#delivery_connection" id="delivery-connection-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Delivery Connection</a></li>
+    <li role="presentation"><a href="#states" role="tab" id="states-tab" data-toggle="tab" aria-controls="profile">Import/Export</a></li>
+  </ul>
+  <div id="myTabContent" class="tab-content">
+    <div role="tabpanel" class="tab-pane fade in active" id="connection" aria-labelledby="home-tab">
+      <%= render 'states_connection' %>
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="payment_connection" aria-labelledby="home-tab">
+      <%= render 'payment_connection' %>
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="delivery_connection" aria-labelledby="home-tab">
+      <%= render 'delivery_connection' %>
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="states" aria-labelledby="profile-tab">
+      <br>
+      <div class="col-md-6">
+        <div class="col-md-3">
+          <%= link_to 'import customers', import_customers_admin_retail_index_path, class: 'btn btn-success' %>
+        </div>
+        <div class="col-md-3">
+          <%= link_to 'import orders', import_orders_admin_retail_index_path, class: 'btn btn-success' %>
+        </div>
+        <div class="col-md-3">
+          <%= link_to 'export all orders', export_all_orders_admin_retail_index_path, class: 'btn btn-success' %>
+        </div>
+        <div class="col-md-3">
+          <%= link_to 'export all customers', export_all_customers_admin_retail_index_path, class: 'btn btn-success' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

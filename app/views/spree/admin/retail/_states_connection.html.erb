@@ -1,0 +1,40 @@
+<%= form_for :state, url: update_states_admin_retail_index_path do |st| %>
+    <div class="col-md-4">
+      <h4>Common Order States:</h4>
+      <%= st.fields_for :order do |o|%>
+          <% Spree::Order.state_machine.states.keys.each do |order_state| %>
+              <div class="form-group">
+                <%= o.label order_state %>
+                <%= o.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['order'] && Spree::Config[:state_connection]['order'][order_state]), {include_blank: true}, class: 'form-control' %>
+              </div>
+          <% end %>
+      <% end %>
+    </div>
+    <div class="col-md-4">
+      <h4>Order Payment States:</h4>
+      <%= st.fields_for :payment do |p|%>
+          <% Spree::Order::PAYMENT_STATES.each do |order_state| %>
+              <div class="form-group">
+                <%= p.label order_state %>
+                <%= p.select order_state, options_for_select(@payment_states, Spree::Config[:state_connection]['payment'] && Spree::Config[:state_connection]['payment'][order_state]), {include_blank: true}, class: 'form-control' %>
+              </div>
+          <% end %>
+      <% end %>
+    </div>
+    <!--
+    <div class="col-md-4">
+      <h4>Order Shipment States:</h4>
+      <%= st.fields_for :shipment do |s|%>
+          <% Spree::Order::SHIPMENT_STATES.each do |order_state| %>
+              <div class="form-group">
+                <%= s.label order_state %>
+                <%= s.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['shipment'] && Spree::Config[:state_connection]['shipment'][order_state]), {include_blank: true}, class: 'form-control' %>
+              </div>
+          <% end %>
+      <% end %>
+    </div>
+    -->
+    <div class="col-md-1 col-md-offset-11">
+      <%= submit_tag :update, class: 'form-control btn btn-success' %>
+    </div>
+<% end %>
