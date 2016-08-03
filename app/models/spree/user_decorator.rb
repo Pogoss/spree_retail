@@ -16,8 +16,9 @@ module Spree
         user[:phones] = [ { number: ship_address.phone } ]
       end
       if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name)
-        user[:firstName] = first_name
-        user[:lastName] = last_name
+        user[:firstName] = first_name unless user[:firstName].present?
+        user[:lastName] = last_name unless user[:lastName].present?
+        user[:phones] = [ { number: phone } ] if phone.present?
       end
       user
     end

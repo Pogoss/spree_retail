@@ -14,10 +14,12 @@ module Spree
           email: email,
           createdAt: created_at.strftime('%Y-%m-%d %T'),
           paymentStatus: payment_state,
+          customerComment: comment,
           customer: {
               externalId: user && user.id
           }
       }
+      order[:phone] = ship_address.phone if ship_address && ship_address.phone.present?
       if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user
         order[:firstName] = user.first_name
         order[:lastName] = user.last_name
@@ -46,8 +48,11 @@ module Spree
         order[:delivery] = {
             code: Spree::Config[:delivery_method][shipment_method_name],
             cost: shipments.last.cost,
-            address: {text: ship_address.to_s }
+            address: {}
         }
+        if ship_address
+          order[:delivery][:address][:text] = "#{ship_address.city} #{ship_address.zipcode} #{ship_address.address1} #{ship_address.address2}"
+        end
       end
       order[:items] = []
       line_items.each do |ln|
