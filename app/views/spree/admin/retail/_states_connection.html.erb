@@ -4,7 +4,7 @@
       <%= st.fields_for :order do |o|%>
           <% Spree::Order.state_machine.states.keys.each do |order_state| %>
               <div class="form-group">
-                <%= o.label order_state %>
+                <%= o.label t("spree.order_state.#{order_state}") %>
                 <%= o.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['order'] && Spree::Config[:state_connection]['order'][order_state]), {include_blank: true}, class: 'form-control' %>
               </div>
           <% end %>
@@ -15,7 +15,7 @@
       <%= st.fields_for :payment do |p|%>
           <% Spree::Order::PAYMENT_STATES.each do |order_state| %>
               <div class="form-group">
-                <%= p.label order_state %>
+                <%= p.label t("spree.payment_states.#{order_state}") %>
                 <%= p.select order_state, options_for_select(@payment_states, Spree::Config[:state_connection]['payment'] && Spree::Config[:state_connection]['payment'][order_state]), {include_blank: true}, class: 'form-control' %>
               </div>
           <% end %>
