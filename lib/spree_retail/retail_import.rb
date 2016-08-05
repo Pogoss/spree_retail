@@ -106,6 +106,14 @@ class RetailImport
       # spree_order.bill_address = user.bill_address
     end
 
+    if order['items']
+      order['items'].each do |item|
+        existing_order.line_items.where(id: item['offer']['externalId']).each do |line_item|
+          line_item.update_attribute(:quantity, item['quantity'])
+        end
+      end
+    end
+
     if order['delivery']
       existing_delivery = existing_order.shipments.first_or_initialize
       # inverted_delivery_methods = Spree::Config[:delivery_method].invert
