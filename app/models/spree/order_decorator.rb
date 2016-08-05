@@ -70,10 +70,10 @@ module Spree
     end
 
     def spree_send_updated
-      if RetailImport.check_order(id)
+      # if RetailImport.check_order(id)
         ord = self.spree_generate_order
         RETAIL.orders_edit(ord).response
-      end
+      # end
     end
 
   end

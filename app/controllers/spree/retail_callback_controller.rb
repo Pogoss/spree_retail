@@ -4,7 +4,7 @@ module Spree
 
     def retail_update_order
       retail_order = RETAIL.orders_get(params[:order_id], 'id').response['order']
-      RetailImport.create_order(retail_order)
+      RetailImport.create_or_update_order(retail_order)
       head :ok
     end
 

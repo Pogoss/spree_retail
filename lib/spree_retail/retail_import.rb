@@ -39,6 +39,15 @@ class RetailImport
   def self.create_orders
     customers = RETAIL.orders.response
     customers['orders'].each do |order|
+      create_or_update_order(order)
+    end
+  end
+
+  def self.create_or_update_order(order)
+    existing_order = Spree::Order.find_by(id: order['externalId'])
+    if existing_order
+      update_order(order, existing_order)
+    else
       create_order(order)
     end
   end
@@ -65,7 +74,73 @@ class RetailImport
     if spree_order.save
       RETAIL.orders_fix_external_ids([{id: order['id'], externalId: spree_order.id}])
     end
+  end
 
+  def self.update_order(order, existing_order)
+    existing_order.number = order['number'] if order['number']
+    existing_order.item_total = order['summ'] if order['summ']
+    existing_order.total = order['totalSumm'] if order['totalSumm']
+    existing_order.email = order['email'] if order['email']
+    existing_order.special_instructions = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
+    # existing_order.completed_at = order['createdAt'] if order['createdAt']
+    existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
+    existing_order.item_count = order['items'].size if order['items']
+
+    if order['customer'] && order['customer']['email']
+      user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
+      existing_order.user = user
+      sh_a = existing_order.ship_address
+      b_a = existing_order.bill_address
+      if sh_a
+        sh_a.firstname = order['customer']['firstName']
+        sh_a.lastname = order['customer']['lastName']
+        sh_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : sh_a.phone
+        sh_a.save
+      end
+      if b_a
+        b_a.firstname = order['customer']['firstName']
+        b_a.lastname = order['customer']['lastName']
+        b_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : b_a.phone
+        b_a.save
+      end
+      # spree_order.bill_address = user.bill_address
+    end
+
+    if order['delivery']
+      existing_delivery = existing_order.shipments.first_or_initialize
+      # inverted_delivery_methods = Spree::Config[:delivery_method].invert
+      # if order['delivery']['code']
+      #   delivery_method = inverted_delivery_methods[order['delivery']['code']]
+      #   shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
+      #   if shipping_method
+      #     existing_delivery.shipping_method = shipping_method
+      #   end
+      # end
+      existing_delivery.state = 'ready' unless existing_delivery.state
+      existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
+      existing_delivery.stock_location_id = 1
+      existing_delivery.save
+    end
+
+    existing_payment = existing_order.payments.first_or_initialize
+    if order['paymentType']
+      inverted_payments_methods = Spree::Config[:payment_method].invert
+      payment_method_name = inverted_payments_methods[order['paymentType']]
+      payment_method = Spree::PaymentMethod.find_by(name: payment_method_name)
+      if payment_method
+        existing_payment.payment_method = payment_method
+      end
+    end
+    if order['paymentStatus']
+      inverted_payment_states = Spree::Config.state_connection['payment'].invert
+      existing_payment.state = inverted_payment_states[order['paymentStatus']]
+    end
+    existing_payment.save
+    add_states_to_order(existing_order, order['status'], order['paymentStatus'])
+    existing_order.retail_stamp = Time.now
+    if existing_order.save
+      RETAIL.orders_fix_external_ids([{id: order['id'], externalId: existing_order.id}])
+    end
   end
 
   def self.add_states_to_order(spree_order, state, payment_state)

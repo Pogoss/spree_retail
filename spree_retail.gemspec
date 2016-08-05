@@ -2,7 +2,7 @@
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_retail'
-  s.version     = '3.1.3'
+  s.version     = '3.1.4'
   s.summary     = 'Connection between Spree and RetailCRM'
   s.description = 'This gem makes connection between Spree and RetailCRM'
   s.required_ruby_version = '>= 2.1.0'
