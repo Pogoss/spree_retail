@@ -86,24 +86,24 @@ class RetailImport
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
     existing_order.item_count = order['items'].size if order['items']
 
+    sh_a = existing_order.ship_address
+    sh_a = Spree::Address.new unless sh_a
+    b_a = existing_order.bill_address
+    b_a = Spree::Address.new unless b_a
     if order['customer'] && order['customer']['email']
       user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
       existing_order.user = user
-      sh_a = existing_order.ship_address
-      b_a = existing_order.bill_address
       if sh_a
         sh_a.firstname = order['customer']['firstName']
         sh_a.lastname = order['customer']['lastName']
         sh_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : sh_a.phone
-        sh_a.save
+
       end
       if b_a
         b_a.firstname = order['customer']['firstName']
         b_a.lastname = order['customer']['lastName']
         b_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : b_a.phone
-        b_a.save
       end
-      # spree_order.bill_address = user.bill_address
     end
 
     if order['items']
@@ -116,19 +116,45 @@ class RetailImport
 
     if order['delivery']
       existing_delivery = existing_order.shipments.first_or_initialize
-      # inverted_delivery_methods = Spree::Config[:delivery_method].invert
-      # if order['delivery']['code']
-      #   delivery_method = inverted_delivery_methods[order['delivery']['code']]
-      #   shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
-      #   if shipping_method
-      #     existing_delivery.shipping_method = shipping_method
-      #   end
-      # end
+      inverted_delivery_methods = Spree::Config[:delivery_method].invert
+      if order['delivery']['code']
+        delivery_method = inverted_delivery_methods[order['delivery']['code']]
+        shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
+        if shipping_method
+          # existing_delivery.shipping_method = shipping_method
+          shipping_rate = existing_delivery.shipping_rates.first_or_initialize
+          shipping_rate.shipping_method = shipping_method
+          shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
+          shipping_rate.save
+        end
+      end
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
       existing_delivery.save
+      if order['delivery']['address']
+        if order['delivery']['address']['city']
+          sh_a.city = order['delivery']['address']['city']
+          b_a.city = order['delivery']['address']['city']
+        end
+        if order['delivery']['address']['index']
+          sh_a.zipcode = order['delivery']['address']['index']
+          b_a.zipcode = order['delivery']['address']['index']
+        end
+        if order['delivery']['address']['index']
+          sh_a.zipcode = order['delivery']['address']['index']
+          b_a.zipcode = order['delivery']['address']['index']
+        end
+        if order['delivery']['address']['text']
+          sh_a.address1 = order['delivery']['address']['text']
+          b_a.address1 = order['delivery']['address']['text']
+        end
+      end
     end
+    sh_a.save
+    existing_order.ship_address = sh_a
+    b_a.save
+    existing_order.bill_address = b_a
 
     existing_payment = existing_order.payments.first_or_initialize
     if order['paymentType']

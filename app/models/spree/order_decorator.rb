@@ -20,17 +20,17 @@ module Spree
           }
       }
       order[:phone] = ship_address.phone if ship_address && ship_address.phone.present?
-      if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user
+      if ship_address
+        order[:firstName] = ship_address.firstname
+        order[:lastName] = ship_address.lastname
+      end
+      if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user && !order[:firstName].present?
         order[:firstName] = user.first_name
         order[:lastName] = user.last_name
       end
       if user && user.ship_address && !order[:firstName].present?
         order[:firstName] = user.ship_address.firstname
         order[:lastName] = user.ship_address.lastname
-      end
-      if ship_address && !order[:firstName].present?
-        order[:firstName] = ship_address.firstname
-        order[:lastName] = ship_address.lastname
       end
       if Spree::Config[:state_connection]['order'].present? && state
         order[:status] = Spree::Config[:state_connection]['order'][state]
@@ -70,10 +70,10 @@ module Spree
     end
 
     def spree_send_updated
-      # if RetailImport.check_order(id)
+      if RetailImport.check_order(id)
         ord = self.spree_generate_order
         RETAIL.orders_edit(ord).response
-      # end
+      end
     end
 
   end
