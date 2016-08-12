@@ -94,15 +94,15 @@ class RetailImport
       user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
       existing_order.user = user
       if sh_a
-        sh_a.firstname = order['customer']['firstName']
-        sh_a.lastname = order['customer']['lastName']
-        sh_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : sh_a.phone
+        sh_a.firstname = order['firstName'] if order['firstName']
+        sh_a.lastname = order['lastName'] if order['lastName']
+        sh_a.phone = order['phone'] if order['phone']
 
       end
       if b_a
-        b_a.firstname = order['customer']['firstName']
-        b_a.lastname = order['customer']['lastName']
-        b_a.phone = order['customer']['phones'].first ? order['customer']['phones'].first['number'] : b_a.phone
+        b_a.firstname = order['firstName'] if order['firstName']
+        b_a.lastname = order['lastName'] if order['lastName']
+        b_a.phone = order['phone'] if order['phone']
       end
     end
 
