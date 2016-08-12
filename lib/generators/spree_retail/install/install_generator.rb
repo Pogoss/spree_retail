@@ -29,8 +29,8 @@ module SpreeRetail
 
       def add_retail_initializer
         # copy_file 'retail_credentials.rb', 'config/initializers/retail_credentials.rb'
-        add_migrations
-        run_migrations
+        # add_migrations
+        # run_migrations
         name = ask('Enter your CRM url (e.g. https://your_crm_name.retailcrm.pro):')
         api_key = ask('Enter your CRM api key:')
         if name.present? && api_key.present?
