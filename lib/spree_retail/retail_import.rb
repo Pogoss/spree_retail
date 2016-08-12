@@ -108,7 +108,7 @@ class RetailImport
 
     if order['items']
       order['items'].each do |item|
-        existing_order.line_items.where(id: item['offer']['externalId']).each do |line_item|
+        existing_order.line_items.where(variant_id: item['offer']['externalId']).each do |line_item|
           line_item.update_attribute(:quantity, item['quantity'])
         end
       end

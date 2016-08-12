@@ -56,7 +56,7 @@ module Spree
       end
       order[:items] = []
       line_items.each do |ln|
-        order[:items] << {productId: ln.id , initialPrice: ln.price, quantity: ln.quantity, productName: ln.name}
+        order[:items] << {initialPrice: ln.price, quantity: ln.quantity, productName: ln.name, offer: {externalId: ln.variant_id}}
       end
       order
     end
