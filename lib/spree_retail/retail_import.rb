@@ -1,6 +1,15 @@
 class RetailImport
   require 'retailcrm'
 
+  REGIONS = {26 => 1, 28 => 2, 35 => 3, 62 => 4, 84 => 5, 7 => 6, 52 => 7, 81 => 8, 4 => 9, 86 => 10, 72 => 11, 11 => 12,
+         39 => 13, 80 => 14, 34 => 15, 41 => 16, 70 => 17, 16 => 18, 77 => 19, 22 => 20, 43 => 21, 24 => 22, 56 => 23,
+         30 => 24, 60 => 25, 68 => 26, 75 => 27, 23 => 28, 53 => 29, 46 => 30, 69 => 31, 18 => 32, 38 => 33, 71 => 34,
+         27 => 35, 10 => 36, 2 => 37, 25 => 38, 42 => 39, 17 => 40, 45 => 41, 5 => 42, 55 => 43, 15 => 44, 33 => 45,
+         67 => 46, 12 => 47, 3 => 48, 19 => 49, 76 => 50, 78 => 51, 51 => 52, 44 => 53, 36 => 54, 59 => 55, 73 => 56,
+         49 => 57, 61 => 58, 82 => 59, 32 => 60, 66 => 61, 64 => 62, 83 => 63, 48 => 64, 20 => 65, 14 => 66, 29 => 67,
+         40 => 68, 9 => 69, 6 => 70, 74 => 71, 21 => 72, 57 => 73, 79 => 74, 31 => 75, 37 => 76, 13 => 77, 65 => 78,
+         8 => 79, 58 => 80, 1 => 81, 47 => 82, 63 => 83, 85 => 84}
+
   def self.create_customers
     customers = RETAIL.customers.response
     customers['customers'].each do |customer|
@@ -161,8 +170,10 @@ class RetailImport
         end
         sh_a.country_id = 1
         b_a.country_id = 1
-        sh_a.state_id = 1 #fix it !!!!!!
-        b_a.state_id = 1 #fix it !!!!!!
+        if order['delivery']['address']
+          sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_s] || 1
+          b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_s] || 1
+        end
       end
     end
     sh_a.save
