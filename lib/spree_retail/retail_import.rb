@@ -44,11 +44,13 @@ class RetailImport
   end
 
   def self.create_or_update_order(order)
-    existing_order = Spree::Order.find_by(id: order['externalId'])
-    if existing_order
+    if order
+      existing_order = Spree::Order.where(id: order['externalId']).first_or_initialize
       update_order(order, existing_order)
-    else
-      create_order(order)
+      # if existing_order
+      # else
+      #   create_order(order)
+      # end
     end
   end
 
@@ -108,8 +110,15 @@ class RetailImport
 
     if order['items']
       order['items'].each do |item|
-        existing_order.line_items.where(variant_id: item['offer']['externalId']).each do |line_item|
+        line_items = existing_order.line_items.where(variant_id: item['offer']['externalId'])
+        line_items.each do |line_item|
           line_item.update_attribute(:quantity, item['quantity'])
+        end
+        if line_items.empty?
+          ln = existing_order.line_items.new(currency: 'RUB')
+          ln.variant_id = item['offer']['externalId'] if item['offer'] && item['offer']['externalId']
+          ln.price = item['purchasePrice']
+          ln.quantity = item['quantity']
         end
       end
     end
@@ -131,6 +140,7 @@ class RetailImport
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
+      existing_delivery.retail_update = true
       existing_delivery.save
       if order['delivery']['address']
         if order['delivery']['address']['city']
@@ -149,6 +159,10 @@ class RetailImport
           sh_a.address1 = order['delivery']['address']['text']
           b_a.address1 = order['delivery']['address']['text']
         end
+        sh_a.country_id = 1
+        b_a.country_id = 1
+        sh_a.state_id = 1 #fix it !!!!!!
+        b_a.state_id = 1 #fix it !!!!!!
       end
     end
     sh_a.save
@@ -157,6 +171,7 @@ class RetailImport
     existing_order.bill_address = b_a
 
     existing_payment = existing_order.payments.first_or_initialize
+    existing_payment.retail_update = true
     if order['paymentType']
       inverted_payments_methods = Spree::Config[:payment_method].invert
       payment_method_name = inverted_payments_methods[order['paymentType']]
@@ -218,7 +233,7 @@ class RetailImport
 
   def self.check_order(id)
     begin
-      RETAIL.orders_get(id).response['success']
+      RETAIL.orders_get(id, 'externalId').response['success']
     rescue
       false
     end
@@ -226,7 +241,7 @@ class RetailImport
 
   def self.check_user(id)
     begin
-      RETAIL.customers_get(id).response['success']
+      RETAIL.customers_get(id, 'externalId').response['success']
     rescue
       false
     end

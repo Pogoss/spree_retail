@@ -19,6 +19,11 @@ module Spree
               externalId: user && user.id
           }
       }
+      if adjustments.present?
+        adjustments.each do |adj|
+          order[:discount] = adj.amount * -1
+        end
+      end
       order[:phone] = ship_address.phone if ship_address && ship_address.phone.present?
       if ship_address
         order[:firstName] = ship_address.firstname
@@ -45,9 +50,15 @@ module Spree
       end
       if Spree::Config[:delivery_method].present? && shipments.present?
         shipment_method_name = shipments.last.shipping_method && shipments.last.shipping_method.name
+        shipping_cost = shipments.last.cost
+        if shipments.last.adjustments.present?
+          shipments.last.adjustments.each do |adj|
+            shipping_cost = shipping_cost + adj.amount
+          end
+        end
         order[:delivery] = {
             code: Spree::Config[:delivery_method][shipment_method_name],
-            cost: shipments.last.cost,
+            cost: shipping_cost,
             address: {}
         }
         if ship_address
@@ -56,7 +67,7 @@ module Spree
       end
       order[:items] = []
       line_items.each do |ln|
-        order[:items] << {initialPrice: ln.price, quantity: ln.quantity, productName: ln.name, offer: {externalId: ln.variant_id}}
+        order[:items] << {initialPrice: ln.price, quantity: ln.quantity, productName: ln.name, productId: ln.variant_id}
       end
       order
     end
@@ -70,10 +81,10 @@ module Spree
     end
 
     def spree_send_updated
-      # if RetailImport.check_order(id)
+      if RetailImport.check_order(id)
         ord = self.spree_generate_order
         RETAIL.orders_edit(ord).response
-      # end
+      end
     end
 
   end
