@@ -93,7 +93,6 @@ class RetailImport
     existing_order.total = order['totalSumm'] if order['totalSumm']
     existing_order.email = order['email'] if order['email']
     existing_order.special_instructions = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
-    # existing_order.completed_at = order['createdAt'] if order['createdAt']
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
     existing_order.item_count = order['items'].size if order['items']
 
@@ -171,8 +170,8 @@ class RetailImport
         sh_a.country_id = 1
         b_a.country_id = 1
         if order['delivery']['address']
-          sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_s] || 1
-          b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_s] || 1
+          sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
+          b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
         end
       end
     end
@@ -207,6 +206,7 @@ class RetailImport
     if Spree::Config.state_connection['order']
       inverted_states = Spree::Config.state_connection['order'].invert
       spree_order.state = inverted_states[state] || spree_order.state || 'complete'
+      spree_order.completed_at = Time.now if spree_order.state == 'complete'
     end
     if Spree::Config.state_connection['payment']
       inverted_payment_states = Spree::Config.state_connection['payment'].invert
