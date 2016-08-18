@@ -88,13 +88,13 @@ class RetailImport
   end
 
   def self.update_order(order, existing_order)
-    # existing_order.number = order['number'] if order['number']
-    # existing_order.item_total = order['summ'] if order['summ']
-    # existing_order.total = order['totalSumm'] if order['totalSumm']
-    # existing_order.email = order['email'] if order['email']
-    # existing_order.special_instructions = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
-    # existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
-    # existing_order.item_count = order['items'].size if order['items']
+    existing_order.number = order['number'] if order['number']
+    existing_order.item_total = order['summ'] if order['summ']
+    existing_order.total = order['totalSumm'] if order['totalSumm']
+    existing_order.email = order['email'] if order['email']
+    existing_order.special_instructions = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
+    existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
+    existing_order.item_count = order['items'].size if order['items']
 
     # sh_a = existing_order.ship_address
     # sh_a = Spree::Address.new unless sh_a
@@ -179,7 +179,7 @@ class RetailImport
     # existing_order.ship_address = sh_a
     # b_a.save
     # existing_order.bill_address = b_a
-    #
+
     # existing_payment = existing_order.payments.first_or_initialize
     # existing_payment.retail_update = true
     # if order['paymentType']
@@ -196,7 +196,7 @@ class RetailImport
     # end
     # existing_payment.save
     # add_states_to_order(existing_order, order['status'], order['paymentStatus'])
-    # existing_order.retail_stamp = Time.now
+    existing_order.retail_stamp = Time.now
     if existing_order.save
       RETAIL.orders_fix_external_ids([{id: order['id'], externalId: existing_order.id}])
     end
