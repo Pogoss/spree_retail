@@ -148,8 +148,8 @@ class RetailImport
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
-      # existing_delivery.retail_update = true
-      # existing_delivery.save
+      existing_delivery.retail_update = true
+      existing_delivery.save
       if order['delivery']['address']
         if order['delivery']['address']['city']
           sh_a.city = order['delivery']['address']['city']
