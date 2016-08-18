@@ -83,7 +83,7 @@ module Spree
     def spree_send_updated
       if RetailImport.check_order(id)
         ord = self.spree_generate_order
-        File.open('public/retail.txt', 'a') { |file| file.write(ord.retail_stamp_changed?.to_s) }
+        File.open('public/retail.txt', 'a') { |file| file.write(self.retail_stamp_changed?.to_s) }
         RETAIL.orders_edit(ord).response
       end
     end
