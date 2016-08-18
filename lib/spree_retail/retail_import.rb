@@ -149,6 +149,7 @@ class RetailImport
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
       existing_delivery.retail_update = true
+      Rails.logger.info 'delivery!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
       existing_delivery.save
       if order['delivery']['address']
         if order['delivery']['address']['city']
