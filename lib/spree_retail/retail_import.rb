@@ -145,7 +145,7 @@ class RetailImport
           shipping_rate.save
         end
       end
-      existing_delivery.state = 'ready' unless existing_delivery.state
+      # existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
       existing_delivery.retail_update = true
