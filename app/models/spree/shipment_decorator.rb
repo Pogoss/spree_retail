@@ -1,7 +1,7 @@
 module Spree
   Spree::Shipment.class_eval do
-    before_create :send_spree_order_update, unless: :retail_update
-    before_update :send_spree_order_update, unless: :retail_update
+    # after_create :send_spree_order_update, unless: :retail_update
+    # after_create :send_spree_order_update, unless: :retail_update
 
     attr_accessor :retail_update
 
