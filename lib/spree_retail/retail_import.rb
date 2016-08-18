@@ -180,22 +180,22 @@ class RetailImport
     # b_a.save
     # existing_order.bill_address = b_a
 
-    # existing_payment = existing_order.payments.first_or_initialize
-    # existing_payment.retail_update = true
-    # if order['paymentType']
-    #   inverted_payments_methods = Spree::Config[:payment_method].invert
-    #   payment_method_name = inverted_payments_methods[order['paymentType']]
-    #   payment_method = Spree::PaymentMethod.find_by(name: payment_method_name)
-    #   if payment_method
-    #     existing_payment.payment_method = payment_method
-    #   end
-    # end
-    # if order['paymentStatus']
-    #   inverted_payment_states = Spree::Config.state_connection['payment'].invert
-    #   existing_payment.state = inverted_payment_states[order['paymentStatus']]
-    # end
-    # existing_payment.save
-    # add_states_to_order(existing_order, order['status'], order['paymentStatus'])
+    existing_payment = existing_order.payments.first_or_initialize
+    existing_payment.retail_update = true
+    if order['paymentType']
+      inverted_payments_methods = Spree::Config[:payment_method].invert
+      payment_method_name = inverted_payments_methods[order['paymentType']]
+      payment_method = Spree::PaymentMethod.find_by(name: payment_method_name)
+      if payment_method
+        existing_payment.payment_method = payment_method
+      end
+    end
+    if order['paymentStatus']
+      inverted_payment_states = Spree::Config.state_connection['payment'].invert
+      existing_payment.state = inverted_payment_states[order['paymentStatus']]
+    end
+    existing_payment.save
+    add_states_to_order(existing_order, order['status'], order['paymentStatus'])
     existing_order.retail_stamp = Time.now
     if existing_order.save
       RETAIL.orders_fix_external_ids([{id: order['id'], externalId: existing_order.id}])
