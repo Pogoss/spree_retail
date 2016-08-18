@@ -96,25 +96,25 @@ class RetailImport
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
     existing_order.item_count = order['items'].size if order['items']
 
-    sh_a = existing_order.ship_address
-    sh_a = Spree::Address.new unless sh_a
-    b_a = existing_order.bill_address
-    b_a = Spree::Address.new unless b_a
-    if order['customer'] && order['customer']['email']
-      user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
-      existing_order.user = user
-      if sh_a
-        sh_a.firstname = order['firstName'] if order['firstName']
-        sh_a.lastname = order['lastName'] if order['lastName']
-        sh_a.phone = order['phone'] if order['phone']
-
-      end
-      if b_a
-        b_a.firstname = order['firstName'] if order['firstName']
-        b_a.lastname = order['lastName'] if order['lastName']
-        b_a.phone = order['phone'] if order['phone']
-      end
-    end
+    # sh_a = existing_order.ship_address
+    # sh_a = Spree::Address.new unless sh_a
+    # b_a = existing_order.bill_address
+    # b_a = Spree::Address.new unless b_a
+    # if order['customer'] && order['customer']['email']
+    #   user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
+    #   existing_order.user = user
+    #   if sh_a
+    #     sh_a.firstname = order['firstName'] if order['firstName']
+    #     sh_a.lastname = order['lastName'] if order['lastName']
+    #     sh_a.phone = order['phone'] if order['phone']
+    #
+    #   end
+    #   if b_a
+    #     b_a.firstname = order['firstName'] if order['firstName']
+    #     b_a.lastname = order['lastName'] if order['lastName']
+    #     b_a.phone = order['phone'] if order['phone']
+    #   end
+    # end
 
     if order['items']
       order['items'].each do |item|
@@ -175,10 +175,10 @@ class RetailImport
     #     end
     #   end
     # end
-    sh_a.save
-    existing_order.ship_address = sh_a
-    b_a.save
-    existing_order.bill_address = b_a
+    # sh_a.save
+    # existing_order.ship_address = sh_a
+    # b_a.save
+    # existing_order.bill_address = b_a
 
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
