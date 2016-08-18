@@ -96,89 +96,89 @@ class RetailImport
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
     existing_order.item_count = order['items'].size if order['items']
 
-    # sh_a = existing_order.ship_address
-    # sh_a = Spree::Address.new unless sh_a
-    # b_a = existing_order.bill_address
-    # b_a = Spree::Address.new unless b_a
-    # if order['customer'] && order['customer']['email']
-    #   user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
-    #   existing_order.user = user
-    #   if sh_a
-    #     sh_a.firstname = order['firstName'] if order['firstName']
-    #     sh_a.lastname = order['lastName'] if order['lastName']
-    #     sh_a.phone = order['phone'] if order['phone']
-    #
-    #   end
-    #   if b_a
-    #     b_a.firstname = order['firstName'] if order['firstName']
-    #     b_a.lastname = order['lastName'] if order['lastName']
-    #     b_a.phone = order['phone'] if order['phone']
-    #   end
-    # end
+    sh_a = existing_order.ship_address
+    sh_a = Spree::Address.new unless sh_a
+    b_a = existing_order.bill_address
+    b_a = Spree::Address.new unless b_a
+    if order['customer'] && order['customer']['email']
+      user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
+      existing_order.user = user
+      if sh_a
+        sh_a.firstname = order['firstName'] if order['firstName']
+        sh_a.lastname = order['lastName'] if order['lastName']
+        sh_a.phone = order['phone'] if order['phone']
 
-    # if order['items']
-    #   order['items'].each do |item|
-    #     line_items = existing_order.line_items.where(variant_id: item['offer']['externalId'])
-    #     line_items.each do |line_item|
-    #       line_item.update_attribute(:quantity, item['quantity'])
-    #     end
-    #     if line_items.empty?
-    #       ln = existing_order.line_items.new(currency: 'RUB')
-    #       ln.variant_id = item['offer']['externalId'] if item['offer'] && item['offer']['externalId']
-    #       ln.price = item['purchasePrice']
-    #       ln.quantity = item['quantity']
-    #     end
-    #   end
-    # end
+      end
+      if b_a
+        b_a.firstname = order['firstName'] if order['firstName']
+        b_a.lastname = order['lastName'] if order['lastName']
+        b_a.phone = order['phone'] if order['phone']
+      end
+    end
 
-    # if order['delivery']
-    #   existing_delivery = existing_order.shipments.first_or_initialize
-    #   inverted_delivery_methods = Spree::Config[:delivery_method].invert
-    #   if order['delivery']['code']
-    #     delivery_method = inverted_delivery_methods[order['delivery']['code']]
-    #     shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
-    #     if shipping_method
-    #       # existing_delivery.shipping_method = shipping_method
-    #       shipping_rate = existing_delivery.shipping_rates.first_or_initialize
-    #       shipping_rate.shipping_method = shipping_method
-    #       shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
-    #       shipping_rate.save
-    #     end
-    #   end
-    #   existing_delivery.state = 'ready' unless existing_delivery.state
-    #   existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
-    #   existing_delivery.stock_location_id = 1
-    #   existing_delivery.retail_update = true
-    #   existing_delivery.save
-    #   if order['delivery']['address']
-    #     if order['delivery']['address']['city']
-    #       sh_a.city = order['delivery']['address']['city']
-    #       b_a.city = order['delivery']['address']['city']
-    #     end
-    #     if order['delivery']['address']['index']
-    #       sh_a.zipcode = order['delivery']['address']['index']
-    #       b_a.zipcode = order['delivery']['address']['index']
-    #     end
-    #     if order['delivery']['address']['index']
-    #       sh_a.zipcode = order['delivery']['address']['index']
-    #       b_a.zipcode = order['delivery']['address']['index']
-    #     end
-    #     if order['delivery']['address']['text']
-    #       sh_a.address1 = order['delivery']['address']['text']
-    #       b_a.address1 = order['delivery']['address']['text']
-    #     end
-    #     sh_a.country_id = 1
-    #     b_a.country_id = 1
-    #     if order['delivery']['address']
-    #       sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
-    #       b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
-    #     end
-    #   end
-    # end
-    # sh_a.save
-    # existing_order.ship_address = sh_a
-    # b_a.save
-    # existing_order.bill_address = b_a
+    if order['items']
+      order['items'].each do |item|
+        line_items = existing_order.line_items.where(variant_id: item['offer']['externalId'])
+        line_items.each do |line_item|
+          line_item.update_attribute(:quantity, item['quantity'])
+        end
+        if line_items.empty?
+          ln = existing_order.line_items.new(currency: 'RUB')
+          ln.variant_id = item['offer']['externalId'] if item['offer'] && item['offer']['externalId']
+          ln.price = item['purchasePrice']
+          ln.quantity = item['quantity']
+        end
+      end
+    end
+
+    if order['delivery']
+      existing_delivery = existing_order.shipments.first_or_initialize
+      inverted_delivery_methods = Spree::Config[:delivery_method].invert
+      if order['delivery']['code']
+        delivery_method = inverted_delivery_methods[order['delivery']['code']]
+        shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
+        if shipping_method
+          # existing_delivery.shipping_method = shipping_method
+          shipping_rate = existing_delivery.shipping_rates.first_or_initialize
+          shipping_rate.shipping_method = shipping_method
+          shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
+          shipping_rate.save
+        end
+      end
+      existing_delivery.state = 'ready' unless existing_delivery.state
+      existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
+      existing_delivery.stock_location_id = 1
+      existing_delivery.retail_update = true
+      existing_delivery.save
+      if order['delivery']['address']
+        if order['delivery']['address']['city']
+          sh_a.city = order['delivery']['address']['city']
+          b_a.city = order['delivery']['address']['city']
+        end
+        if order['delivery']['address']['index']
+          sh_a.zipcode = order['delivery']['address']['index']
+          b_a.zipcode = order['delivery']['address']['index']
+        end
+        if order['delivery']['address']['index']
+          sh_a.zipcode = order['delivery']['address']['index']
+          b_a.zipcode = order['delivery']['address']['index']
+        end
+        if order['delivery']['address']['text']
+          sh_a.address1 = order['delivery']['address']['text']
+          b_a.address1 = order['delivery']['address']['text']
+        end
+        sh_a.country_id = 1
+        b_a.country_id = 1
+        if order['delivery']['address']
+          sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
+          b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
+        end
+      end
+    end
+    sh_a.save
+    existing_order.ship_address = sh_a
+    b_a.save
+    existing_order.bill_address = b_a
 
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
