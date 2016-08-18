@@ -131,50 +131,50 @@ class RetailImport
       end
     end
 
-    if order['delivery']
-      existing_delivery = existing_order.shipments.first_or_initialize
-      inverted_delivery_methods = Spree::Config[:delivery_method].invert
-      if order['delivery']['code']
-        delivery_method = inverted_delivery_methods[order['delivery']['code']]
-        shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
-        if shipping_method
-          # existing_delivery.shipping_method = shipping_method
-          shipping_rate = existing_delivery.shipping_rates.first_or_initialize
-          shipping_rate.shipping_method = shipping_method
-          shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
-          shipping_rate.save
-        end
-      end
-      existing_delivery.state = 'ready' unless existing_delivery.state
-      existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
-      existing_delivery.stock_location_id = 1
-      existing_delivery.retail_update = true
-      existing_delivery.save
-      if order['delivery']['address']
-        if order['delivery']['address']['city']
-          sh_a.city = order['delivery']['address']['city']
-          b_a.city = order['delivery']['address']['city']
-        end
-        if order['delivery']['address']['index']
-          sh_a.zipcode = order['delivery']['address']['index']
-          b_a.zipcode = order['delivery']['address']['index']
-        end
-        if order['delivery']['address']['index']
-          sh_a.zipcode = order['delivery']['address']['index']
-          b_a.zipcode = order['delivery']['address']['index']
-        end
-        if order['delivery']['address']['text']
-          sh_a.address1 = order['delivery']['address']['text']
-          b_a.address1 = order['delivery']['address']['text']
-        end
-        sh_a.country_id = 1
-        b_a.country_id = 1
-        if order['delivery']['address']
-          sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
-          b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
-        end
-      end
-    end
+    # if order['delivery']
+    #   existing_delivery = existing_order.shipments.first_or_initialize
+    #   inverted_delivery_methods = Spree::Config[:delivery_method].invert
+    #   if order['delivery']['code']
+    #     delivery_method = inverted_delivery_methods[order['delivery']['code']]
+    #     shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
+    #     if shipping_method
+    #       # existing_delivery.shipping_method = shipping_method
+    #       shipping_rate = existing_delivery.shipping_rates.first_or_initialize
+    #       shipping_rate.shipping_method = shipping_method
+    #       shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
+    #       shipping_rate.save
+    #     end
+    #   end
+    #   existing_delivery.state = 'ready' unless existing_delivery.state
+    #   existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
+    #   existing_delivery.stock_location_id = 1
+    #   existing_delivery.retail_update = true
+    #   existing_delivery.save
+    #   if order['delivery']['address']
+    #     if order['delivery']['address']['city']
+    #       sh_a.city = order['delivery']['address']['city']
+    #       b_a.city = order['delivery']['address']['city']
+    #     end
+    #     if order['delivery']['address']['index']
+    #       sh_a.zipcode = order['delivery']['address']['index']
+    #       b_a.zipcode = order['delivery']['address']['index']
+    #     end
+    #     if order['delivery']['address']['index']
+    #       sh_a.zipcode = order['delivery']['address']['index']
+    #       b_a.zipcode = order['delivery']['address']['index']
+    #     end
+    #     if order['delivery']['address']['text']
+    #       sh_a.address1 = order['delivery']['address']['text']
+    #       b_a.address1 = order['delivery']['address']['text']
+    #     end
+    #     sh_a.country_id = 1
+    #     b_a.country_id = 1
+    #     if order['delivery']['address']
+    #       sh_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
+    #       b_a.state_id = REGIONS[order['delivery']['address']['regionId'].to_i] || 1
+    #     end
+    #   end
+    # end
     sh_a.save
     existing_order.ship_address = sh_a
     b_a.save
