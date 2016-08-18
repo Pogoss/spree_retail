@@ -7,6 +7,7 @@ module Spree
 
     def send_spree_order_update
       if order
+        File.open('public/retail.txt', 'a') { |file| file.write("payment\n") }
         order.spree_send_updated
       end
     end
