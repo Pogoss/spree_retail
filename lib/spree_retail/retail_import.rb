@@ -127,7 +127,8 @@ class RetailImport
           ln.variant_id = item['offer']['externalId'] if item['offer'] && item['offer']['externalId']
           ln.price = item['purchasePrice']
           ln.quantity = item['quantity']
-          ln.save
+          # Rails.logger.info "Year: #{Time.now.year}"
+          ln.save!
         end
       end
     end
