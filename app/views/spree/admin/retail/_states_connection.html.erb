@@ -27,7 +27,7 @@
           <% Spree::Order::SHIPMENT_STATES.each do |order_state| %>
               <div class="form-group">
                 <%= s.label t("spree.shipment_states.#{order_state}") %>
-                <%= s.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['shipment'] && Spree::Config[:state_connection]['shipment'][order_state]), {}, {multiple: true, class: 'form-control shipment'} %>
+                <%= s.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['shipment'] && Spree::Config[:state_connection]['shipment'][order_state]), {}, {multiple: true, class: 'shipment'} %>
               </div>
           <% end %>
       <% end %>
