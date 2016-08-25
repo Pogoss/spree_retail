@@ -1,8 +1,8 @@
 module Spree
   Spree::Order.class_eval do
-    after_create {|ord| ord.spree_send_created if ord.state != 'cart' && !ord.retail_stamp.present? }
-    before_update {|ord| ord.spree_send_created if ord.state != 'cart' && ord.state_changed? && !ord.retail_stamp.present? }
-    before_update {|ord| ord.spree_send_updated if ord.state != 'cart' && !ord.retail_stamp_changed? }
+    after_create {|ord| ord.spree_send_created if ord.state == 'complete' && !ord.retail_stamp.present? }
+    before_update {|ord| ord.spree_send_created if ord.state == 'complete' && ord.state_changed? && !ord.retail_stamp.present? }
+    before_update {|ord| ord.spree_send_updated unless ord.retail_stamp_changed? }
 
     def spree_generate_order
       if user && !RETAIL.customers_get(user.id).response['success']
@@ -37,8 +37,10 @@ module Spree
         order[:firstName] = user.ship_address.firstname
         order[:lastName] = user.ship_address.lastname
       end
-      if Spree::Config[:state_connection]['order'].present? && state
-        order[:status] = Spree::Config[:state_connection]['order'][state]
+      if Spree::Config[:state_connection]['shipment'].present? && shipment_state
+        order[:status] = Spree::Config[:state_connection]['shipment'][shipment_state] && Spree::Config[:state_connection]['shipment'][shipment_state].first
+      else
+        order[:status] = 'new'
       end
       if Spree::Config[:state_connection]['payment'].present? && payment_state
         order[:paymentStatus] = Spree::Config[:state_connection]['payment'][payment_state]

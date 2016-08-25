@@ -21,20 +21,21 @@
           <% end %>
       <% end %>
     </div>
-    <!--
     <div class="col-md-4">
       <h4>Order Shipment States:</h4>
       <%= st.fields_for :shipment do |s|%>
           <% Spree::Order::SHIPMENT_STATES.each do |order_state| %>
               <div class="form-group">
-                <%= s.label order_state %>
-                <%= s.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['shipment'] && Spree::Config[:state_connection]['shipment'][order_state]), {include_blank: true}, class: 'form-control' %>
+                <%= s.label t("spree.shipment_states.#{order_state}") %>
+                <%= s.select order_state, options_for_select(@retail_states, Spree::Config[:state_connection]['shipment'] && Spree::Config[:state_connection]['shipment'][order_state]), {}, {multiple: true, class: 'form-control shipment'} %>
               </div>
           <% end %>
       <% end %>
     </div>
-    -->
     <div class="col-md-1 col-md-offset-11">
       <%= submit_tag :update, class: 'form-control btn btn-success' %>
     </div>
 <% end %>
+<script>
+  $(".shipment").select2();
+</script>

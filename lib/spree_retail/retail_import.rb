@@ -204,10 +204,19 @@ class RetailImport
   end
 
   def self.add_states_to_order(spree_order, state, payment_state)
-    if Spree::Config.state_connection['order']
-      inverted_states = Spree::Config.state_connection['order'].invert
-      spree_order.state = inverted_states[state] || spree_order.state || 'complete'
-      spree_order.completed_at = Time.now if spree_order.state == 'complete'
+    if Spree::Config.state_connection['shipment']
+      shipment_state = nil
+      Spree::Config.state_connection['shipment'].each do |k, v|
+        if v.include?(state)
+          shipment_state = k
+        end
+      end
+      if shipment_state
+        spree_order.shipment_state = shipment_state || 'ready'
+      else
+        spree_order.shipment_state = spree_order.shipment_state || 'ready'
+      end
+      spree_order.completed_at = Time.now unless spree_order.completed_at
     end
     if Spree::Config.state_connection['payment']
       inverted_payment_states = Spree::Config.state_connection['payment'].invert
@@ -225,6 +234,7 @@ class RetailImport
     elsif options[:delivery_method]
       Spree::Config[:delivery_method] = options[:delivery_method]
     else
+      options['shipment'].each{|k,v| v.delete('')}
       Spree::Config[:state_connection] = options
     end
   end
