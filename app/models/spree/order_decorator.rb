@@ -64,8 +64,7 @@ module Spree
             address: {}
         }
         if bill_address
-          clean_order = {externalId: id, delivery: {address: {region: '', city: '', street: '', building: '', text: ''}}}
-          RETAIL.orders_edit(clean_order)
+          retail_clean_order_address
           order[:delivery][:address][:text] = "#{bill_address.city} #{bill_address.zipcode} #{bill_address.address1} #{bill_address.address2}"
         end
       end
@@ -74,6 +73,11 @@ module Spree
         order[:items] << {initialPrice: ln.price, quantity: ln.quantity, productName: ln.name, productId: ln.variant_id}
       end
       order
+    end
+
+    def retail_clean_order_address
+      clean_order = {externalId: id, delivery: {address: {index: '', region: '', city: '', street: '', building: '', text: ''}}}
+      RETAIL.orders_edit(clean_order)
     end
 
     def spree_send_created
