@@ -88,6 +88,7 @@ class RetailImport
   end
 
   def self.update_order(order, existing_order)
+    existing_order.retail_stamp = Time.now
     existing_order.number = order['number'] if order['number']
     existing_order.item_total = order['summ'] if order['summ']
     existing_order.total = order['totalSumm'] if order['totalSumm']
@@ -132,8 +133,25 @@ class RetailImport
       end
     end
 
+    existing_payment = existing_order.payments.first_or_initialize
+    existing_payment.retail_update = true
+    if order['paymentType']
+      inverted_payments_methods = Spree::Config[:payment_method].invert
+      payment_method_name = inverted_payments_methods[order['paymentType']]
+      payment_method = Spree::PaymentMethod.find_by(name: payment_method_name)
+      if payment_method
+        existing_payment.payment_method = payment_method
+      end
+    end
+    if order['paymentStatus']
+      inverted_payment_states = Spree::Config.state_connection['payment'].invert
+      existing_payment.state = inverted_payment_states[order['paymentStatus']]
+    end
+    existing_payment.save
+
     if order['delivery']
       existing_delivery = existing_order.shipments.first_or_initialize
+      existing_delivery.retail_update = true
       inverted_delivery_methods = Spree::Config[:delivery_method].invert
       if order['delivery']['code']
         delivery_method = inverted_delivery_methods[order['delivery']['code']]
@@ -149,21 +167,14 @@ class RetailImport
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
-      existing_delivery.retail_update = true
       existing_delivery.save
       if order['delivery']['address']
         if order['delivery']['address']['city']
           sh_a.city = order['delivery']['address']['city']
           b_a.city = order['delivery']['address']['city']
         end
-        if order['delivery']['address']['index']
-          sh_a.zipcode = order['delivery']['address']['index']
-          b_a.zipcode = order['delivery']['address']['index']
-        end
-        if order['delivery']['address']['index']
-          sh_a.zipcode = order['delivery']['address']['index']
-          b_a.zipcode = order['delivery']['address']['index']
-        end
+        sh_a.zipcode = order['delivery']['address']['index'] || '000000'
+        b_a.zipcode = order['delivery']['address']['index'] || '000000'
         if order['delivery']['address']['text']
           sh_a.address1 = order['delivery']['address']['text']
           b_a.address1 = order['delivery']['address']['text']
@@ -181,21 +192,7 @@ class RetailImport
     b_a.save
     existing_order.bill_address = b_a
 
-    existing_payment = existing_order.payments.first_or_initialize
-    existing_payment.retail_update = true
-    if order['paymentType']
-      inverted_payments_methods = Spree::Config[:payment_method].invert
-      payment_method_name = inverted_payments_methods[order['paymentType']]
-      payment_method = Spree::PaymentMethod.find_by(name: payment_method_name)
-      if payment_method
-        existing_payment.payment_method = payment_method
-      end
-    end
-    if order['paymentStatus']
-      inverted_payment_states = Spree::Config.state_connection['payment'].invert
-      existing_payment.state = inverted_payment_states[order['paymentStatus']]
-    end
-    existing_payment.save
+
     add_states_to_order(existing_order, order['status'], order['paymentStatus'])
     existing_order.retail_stamp = Time.now
     if existing_order.save

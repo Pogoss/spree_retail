@@ -26,8 +26,8 @@ module Spree
       end
       order[:phone] = ship_address.phone if ship_address && ship_address.phone.present?
       if ship_address
-        order[:firstName] = ship_address.firstname
-        order[:lastName] = ship_address.lastname
+        order[:firstName] = bill_address.firstname
+        order[:lastName] = bill_address.lastname
       end
       if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user && !order[:firstName].present?
         order[:firstName] = user.first_name
@@ -63,8 +63,10 @@ module Spree
             cost: shipping_cost,
             address: {}
         }
-        if ship_address
-          order[:delivery][:address][:text] = "#{ship_address.city} #{ship_address.zipcode} #{ship_address.address1} #{ship_address.address2}"
+        if bill_address
+          clean_order = {externalId: id, delivery: {address: {region: '', city: '', street: '', building: '', text: ''}}}
+          RETAIL.orders_edit(clean_order)
+          order[:delivery][:address][:text] = "#{bill_address.city} #{bill_address.zipcode} #{bill_address.address1} #{bill_address.address2}"
         end
       end
       order[:items] = []
