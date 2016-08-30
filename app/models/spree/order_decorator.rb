@@ -24,7 +24,7 @@ module Spree
           order[:discount] = adj.amount * -1
         end
       end
-      order[:phone] = ship_address.phone if ship_address && ship_address.phone.present?
+      order[:phone] = bill_address.phone if bill_address && bill_address.phone.present?
       if ship_address
         order[:firstName] = bill_address.firstname
         order[:lastName] = bill_address.lastname

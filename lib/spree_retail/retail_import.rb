@@ -153,6 +153,7 @@ class RetailImport
 
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
+    existing_payment.cost = existing_order.shipments.pluck(:cost).sum + existing_order.line_items.pluck(:price).sum + existing_order.adjustments.pluck(:amount).sum
     if order['paymentType']
       inverted_payments_methods = Spree::Config[:payment_method].invert
       payment_method_name = inverted_payments_methods[order['paymentType']]
@@ -194,8 +195,9 @@ class RetailImport
         sh_a.zipcode = order['delivery']['address']['index'] || '000000'
         b_a.zipcode = order['delivery']['address']['index'] || '000000'
         if order['delivery']['address']['text']
-          sh_a.address1 = order['delivery']['address']['text']
-          b_a.address1 = order['delivery']['address']['text']
+          text_address = order['delivery']['address']['text'].gsub('кв./офис', 'кв.')
+          sh_a.address1 = text_address
+          b_a.address1 = text_address
         end
         sh_a.country_id = 1
         b_a.country_id = 1
@@ -237,7 +239,7 @@ class RetailImport
     end
     if Spree::Config.state_connection['payment']
       inverted_payment_states = Spree::Config.state_connection['payment'].invert
-      spree_order.payment_state = inverted_payment_states[payment_state] || spree_order.payment_state || 'paid'
+      spree_order.payment_state = inverted_payment_states[payment_state] || spree_order.payment_state || nil
     end
     # if Spree::Config[:state_connection]['shipment']
     #   inverted_states = Spree::Config[:state_connection]['order'] = Spree::Config.state_connection['shipment'].invert
