@@ -1,5 +1,5 @@
 module Spree
-  Spree::User.class_eval do
+  User.class_eval do
 
     after_create {|usr| usr.spree_send_created unless usr.retail_stamp.present? }
     after_update {|usr| usr.spree_send_updated unless usr.retail_stamp.present? }

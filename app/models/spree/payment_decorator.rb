@@ -1,5 +1,5 @@
 module Spree
-  Spree::Payment.class_eval do
+  Payment.class_eval do
     after_create :send_spree_order_update, unless: :retail_update
     after_update :send_spree_order_update, unless: :retail_update
 
