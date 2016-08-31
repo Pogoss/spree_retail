@@ -110,7 +110,7 @@ class RetailImport
     existing_order.item_total = order['summ'] if order['summ']
     existing_order.total = order['totalSumm'] if order['totalSumm']
     existing_order.email = order['email'] if order['email']
-    existing_order.special_instructions = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
+    existing_order.comment = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
     existing_order.item_count = order['items'].size if order['items']
     existing_order.state = 'complete'
