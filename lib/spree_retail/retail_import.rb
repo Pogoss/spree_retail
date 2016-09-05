@@ -35,7 +35,7 @@ class RetailImport
   end
 
   def self.create_customer(customer)
-    if customer['email']
+    if customer && customer['email']
       user = Spree::User.where(email: customer['email']).first_or_create(password: SecureRandom.hex(10))
       address = user.bill_address || Spree::Address.new
       retail_address = customer['address'] ? [customer['address']['region'], customer['address']['city'], customer['address']['text']].compact.join(', ') : ''
@@ -135,6 +135,8 @@ class RetailImport
       end
     end
 
+    ln_ids = order['items'].map{|ln| ln['offer']['externalId']}
+    existing_order.line_items.where.not(variant_id: ln_ids).destroy_all
     if order['items']
       order['items'].each do |item|
         line_items = existing_order.line_items.where(variant_id: item['offer']['externalId'])

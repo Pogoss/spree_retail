@@ -75,8 +75,10 @@ Spree::Order.class_eval do
   end
 
   def retail_clean_order_address
-    clean_order = {externalId: id, delivery: {address: {index: '', region: '', city: '', street: '', building: '', text: ''}}}
-    RETAIL.orders_edit(clean_order)
+    if id
+      clean_order = {externalId: id, customer: {externalId: user && user.id}, delivery: {address: {index: '', region: '', city: '', street: '', building: '', text: ''}}}
+      RETAIL.orders_edit(clean_order)
+    end
   end
 
   def spree_send_created
