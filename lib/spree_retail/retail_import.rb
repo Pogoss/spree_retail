@@ -107,8 +107,8 @@ class RetailImport
   def self.update_order(order, existing_order)
     existing_order.retail_stamp = Time.now
     existing_order.number = order['number'] if order['number']
-    existing_order.item_total = order['summ'] if order['summ']
-    existing_order.total = order['totalSumm'] if order['totalSumm']
+    # existing_order.item_total = order['summ'] if order['summ']
+    # existing_order.total = order['totalSumm'] if order['totalSumm']
     existing_order.email = order['email'] if order['email']
     existing_order.comment = order['customerComment'].to_s + order['managerComment'].to_s if order['customerComment'] || order['managerComment']
     existing_order.shipment_total = order['delivery']['cost'] if order['delivery'] && order['delivery']['cost']
@@ -156,6 +156,8 @@ class RetailImport
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
     existing_payment.amount = existing_order.shipments.pluck(:cost).sum + existing_order.line_items.pluck(:price).sum + existing_order.adjustments.pluck(:amount).sum
+    existing_order.item_total = existing_order.line_items.pluck(:price).sum
+    existing_order.total = existing_payment.amount
     if order['paymentType']
       inverted_payments_methods = Spree::Config[:payment_method].invert
       payment_method_name = inverted_payments_methods[order['paymentType']]
