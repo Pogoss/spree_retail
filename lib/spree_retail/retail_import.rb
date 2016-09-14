@@ -178,7 +178,7 @@ class RetailImport
         shipping_method = Spree::ShippingMethod.find_by(name: delivery_method)
         if shipping_method
           # existing_delivery.shipping_method = shipping_method
-          shipping_rate = existing_delivery.shipping_rates.first_or_initialize
+          shipping_rate = existing_delivery.shipping_rates.where(shipping_method_id: shipping_method.id).first_or_initialize
           shipping_rate.shipping_method = shipping_method
           shipping_rate.cost = order['delivery']['cost'] if order['delivery']['cost']
           shipping_rate.save
