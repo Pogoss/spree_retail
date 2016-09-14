@@ -3,6 +3,7 @@ module Spree
     skip_before_action :verify_authenticity_token, only: [:retail_update_order, :retail_update_user]
 
     def retail_update_order
+      sleep 1
       retail_order = RETAIL.orders_get(params[:order_id], 'id').response['order']
       RetailImport.create_or_update_order(retail_order)
       head :ok
