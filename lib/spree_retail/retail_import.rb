@@ -155,7 +155,7 @@ class RetailImport
 
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
-    existing_order.item_total = existing_order.line_items.pluck(:price).sum
+    existing_order.item_total = existing_order.line_items.map{|ln| ln.price * ln.quantity}.sum
     if order['paymentType']
       inverted_payments_methods = Spree::Config[:payment_method].invert
       payment_method_name = inverted_payments_methods[order['paymentType']]
@@ -187,7 +187,7 @@ class RetailImport
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
-      existing_payment.amount = existing_delivery.cost + existing_order.line_items.pluck(:price).sum + existing_order.adjustments.pluck(:amount).sum
+      existing_payment.amount = existing_delivery.cost + existing_order.line_items.map{|ln| ln.price * ln.quantity}.sum + existing_order.adjustments.pluck(:amount).sum
       existing_payment.save
       existing_delivery.save
       existing_order.total = existing_payment.amount
