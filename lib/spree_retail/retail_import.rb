@@ -36,7 +36,7 @@ class RetailImport
 
   def self.create_customer(customer)
     if customer && customer['email']
-      user = Spree::User.where(email: customer['email']).first_or_create(password: SecureRandom.hex(10))
+      user = Spree::User.where(email: 'grisha@grisha.info').first_or_create(password: SecureRandom.hex(10))
       address = user.bill_address || Spree::Address.new
       retail_address = customer['address'] ? [customer['address']['region'], customer['address']['city'], customer['address']['text']].compact.join(', ') : ''
       address.update(firstname: customer['firstName'] || 'no name', lastname: customer['lastName'] || 'no name', address1: retail_address || 'no address',
@@ -188,9 +188,10 @@ class RetailImport
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
       existing_payment.amount = existing_delivery.cost + existing_order.line_items.map{|ln| ln.price * ln.quantity}.sum + existing_order.adjustments.pluck(:amount).sum
+      existing_order.total = existing_payment.amount
+      existing_order.save
       existing_payment.save
       existing_delivery.save
-      existing_order.total = existing_payment.amount
       if order['delivery']['address']
         if order['delivery']['address']['city']
           sh_a.city = order['delivery']['address']['city']
