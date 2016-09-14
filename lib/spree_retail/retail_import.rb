@@ -155,9 +155,7 @@ class RetailImport
 
     existing_payment = existing_order.payments.first_or_initialize
     existing_payment.retail_update = true
-    existing_payment.amount = existing_order.shipments.pluck(:cost).sum + existing_order.line_items.pluck(:price).sum + existing_order.adjustments.pluck(:amount).sum
     existing_order.item_total = existing_order.line_items.pluck(:price).sum
-    existing_order.total = existing_payment.amount
     if order['paymentType']
       inverted_payments_methods = Spree::Config[:payment_method].invert
       payment_method_name = inverted_payments_methods[order['paymentType']]
@@ -170,7 +168,6 @@ class RetailImport
       inverted_payment_states = Spree::Config.state_connection['payment'].invert
       existing_payment.state = inverted_payment_states[order['paymentStatus']]
     end
-    existing_payment.save
 
     if order['delivery']
       existing_delivery = existing_order.shipments.first_or_initialize
@@ -190,7 +187,10 @@ class RetailImport
       existing_delivery.state = 'ready' unless existing_delivery.state
       existing_delivery.cost = order['delivery']['cost'] if order['delivery']['cost']
       existing_delivery.stock_location_id = 1
+      existing_payment.amount = existing_delivery.cost + existing_order.line_items.pluck(:price).sum + existing_order.adjustments.pluck(:amount).sum
+      existing_payment.save
       existing_delivery.save
+      existing_order.total = existing_payment.amount
       if order['delivery']['address']
         if order['delivery']['address']['city']
           sh_a.city = order['delivery']['address']['city']
