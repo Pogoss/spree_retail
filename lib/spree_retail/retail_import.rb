@@ -149,6 +149,7 @@ class RetailImport
           ln.price = item['purchasePrice']
           ln.quantity = item['quantity']
           ln.save
+
         end
       end
     end
@@ -190,6 +191,9 @@ class RetailImport
       existing_payment.amount = existing_delivery.cost + existing_order.line_items.map{|ln| ln.price * ln.quantity}.sum + existing_order.adjustments.pluck(:amount).sum
       existing_order.total = existing_payment.amount
       existing_order.save
+      existing_order.line_items.each do |ln|
+        existing_delivery.inventory_units.where(line_item_id: ln.id).first_or_create(variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
+      end
       existing_payment.save
       existing_delivery.save
       if order['delivery']['address']
