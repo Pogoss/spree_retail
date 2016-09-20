@@ -197,7 +197,10 @@ class RetailImport
       existing_order.save
       existing_order.inventory_units.destroy_all
       existing_order.line_items.each do |ln|
-        existing_delivery.inventory_units.where(line_item_id: ln.id).first_or_create(variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
+        ln.quantity.times do
+          # existing_delivery.inventory_units.where(line_item_id: ln.id).first_or_create(variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
+          existing_delivery.inventory_units.create(line_item_id: ln.id, variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
+        end
       end
       existing_payment.save
       existing_delivery.save
