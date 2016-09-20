@@ -136,7 +136,11 @@ class RetailImport
     end
 
     ln_ids = order['items'].map{|ln| ln['offer']['externalId']}
+    existing_order.line_items.where.not(variant_id: ln_ids).each do |ln|
+      ln.variant.stock_items.first && ln.variant.stock_items.first.update_attribute(:count_on_hand, ln.variant.stock_items.first.count_on_hand + ln.quantity)
+    end
     existing_order.line_items.where.not(variant_id: ln_ids).destroy_all
+    existing_order.inventory_units.where.not(variant_id: ln_ids).destroy_all
     if order['items']
       order['items'].each do |item|
         line_items = existing_order.line_items.where(variant_id: item['offer']['externalId'])
@@ -148,8 +152,8 @@ class RetailImport
           ln.variant_id = item['offer']['externalId'] if item['offer'] && item['offer']['externalId']
           ln.price = item['purchasePrice']
           ln.quantity = item['quantity']
+          # existing_order.save
           ln.save
-
         end
       end
     end
@@ -191,6 +195,7 @@ class RetailImport
       existing_payment.amount = existing_delivery.cost + existing_order.line_items.map{|ln| ln.price * ln.quantity}.sum + existing_order.adjustments.pluck(:amount).sum
       existing_order.total = existing_payment.amount
       existing_order.save
+      existing_order.inventory_units.destroy_all
       existing_order.line_items.each do |ln|
         existing_delivery.inventory_units.where(line_item_id: ln.id).first_or_create(variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
       end
