@@ -196,7 +196,6 @@ class RetailImport
       existing_order.total = existing_payment.amount
       existing_order.save
       existing_order.inventory_units.destroy_all
-      existing_payment.save
       existing_delivery.save
       existing_order.line_items.each do |ln|
         ln.quantity.times do
@@ -204,6 +203,7 @@ class RetailImport
           existing_delivery.inventory_units.create(line_item_id: ln.id, variant_id: ln.variant_id, state: 'on_hand', order_id: existing_order.id)
         end
       end
+      existing_payment.save
       if order['delivery']['address']
         if order['delivery']['address']['city']
           sh_a.city = order['delivery']['address']['city']
