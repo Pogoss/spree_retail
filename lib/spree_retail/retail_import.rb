@@ -36,13 +36,15 @@ class RetailImport
 
   def self.create_customer(customer)
     if customer && customer['email']
-      user = Spree::User.where(email: 'grisha@grisha.info').first_or_create(password: SecureRandom.hex(10))
+      user = Spree::User.where(email: customer['email']).first_or_create(password: SecureRandom.hex(10))
       address = user.bill_address || Spree::Address.new
       retail_address = customer['address'] ? [customer['address']['region'], customer['address']['city'], customer['address']['text']].compact.join(', ') : ''
       address.update(firstname: customer['firstName'] || 'Нет имени', lastname: customer['lastName'] || 'Нет фамилии', address1: retail_address || 'Нет адреса',
                      city: (customer['address'] && customer['address']['city']) || 'Нет города', country_id: (Spree::Country.first.id || 0),
-                     zipcode: (customer['address'] && customer['address']['zipcode']) || 'Нет индекса')
-      address['phone'] = customer['phones'].first ? customer['phones'].first['number'] : 'Нет телефона'
+                     zipcode: (customer['address'] && customer['address']['index']) || '000000')
+      address.phone = customer['phones'].first ? customer['phones'].first['number'] : 'Нет телефона'
+      address.state_id = REGIONS[customer['address']['regionId'].to_i]
+      address.state_id = REGIONS_WITH_NAME[customer['address']['region']] || 1
       address.save
       user.bill_address_id = address.id# if address.new_record?
       user.ship_address_id = address.id
@@ -130,7 +132,7 @@ class RetailImport
       end
       if b_a
         b_a.firstname = order['firstName'] ? order['firstName'] : 'Нет имени'
-        b_a.lastname = order['lastName'] if order['lastName'] ? order['lastName'] : 'Нет фамилии'
+        b_a.lastname = order['lastName'] ? order['lastName'] : 'Нет фамилии'
         b_a.phone = order['phone'] ? order['phone'] : 'Нет телефона'
       end
     end
