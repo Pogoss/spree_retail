@@ -39,10 +39,10 @@ class RetailImport
       user = Spree::User.where(email: 'grisha@grisha.info').first_or_create(password: SecureRandom.hex(10))
       address = user.bill_address || Spree::Address.new
       retail_address = customer['address'] ? [customer['address']['region'], customer['address']['city'], customer['address']['text']].compact.join(', ') : ''
-      address.update(firstname: customer['firstName'] || 'no name', lastname: customer['lastName'] || 'no name', address1: retail_address || 'no address',
-                     city: (customer['address'] && customer['address']['city']) || 'no city', country_id: (Spree::Country.first.id || 0),
-                     zipcode: (customer['address'] && customer['address']['zipcode']) || 'no zipcode')
-      address['phone'] = customer['phones'].first ? customer['phones'].first['number'] : 'no phone'
+      address.update(firstname: customer['firstName'] || 'Нет имени', lastname: customer['lastName'] || 'Нет фамилии', address1: retail_address || 'Нет адреса',
+                     city: (customer['address'] && customer['address']['city']) || 'Нет города', country_id: (Spree::Country.first.id || 0),
+                     zipcode: (customer['address'] && customer['address']['zipcode']) || 'Нет индекса')
+      address['phone'] = customer['phones'].first ? customer['phones'].first['number'] : 'Нет телефона'
       address.save
       user.bill_address_id = address.id# if address.new_record?
       user.ship_address_id = address.id
@@ -123,15 +123,15 @@ class RetailImport
       user = Spree::User.find_by(email: order['customer']['email']) || create_customer(order['customer'])
       existing_order.user = user
       if sh_a
-        sh_a.firstname = order['firstName'] if order['firstName']
-        sh_a.lastname = order['lastName'] if order['lastName']
-        sh_a.phone = order['phone'] if order['phone']
+        sh_a.firstname = order['firstName'] ? order['firstName'] : 'Нет имени'
+        sh_a.lastname = order['lastName'] ? order['lastName'] : 'Нет фамилии'
+        sh_a.phone = order['phone'] ? order['phone'] : 'Нет телефона'
 
       end
       if b_a
-        b_a.firstname = order['firstName'] if order['firstName']
-        b_a.lastname = order['lastName'] if order['lastName']
-        b_a.phone = order['phone'] if order['phone']
+        b_a.firstname = order['firstName'] ? order['firstName'] : 'Нет имени'
+        b_a.lastname = order['lastName'] if order['lastName'] ? order['lastName'] : 'Нет фамилии'
+        b_a.phone = order['phone'] ? order['phone'] : 'Нет телефона'
       end
     end
 
