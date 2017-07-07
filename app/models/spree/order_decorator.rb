@@ -1,7 +1,7 @@
 Spree::Order.class_eval do
-  after_create {|ord| ord.spree_send_created if ord.state == 'complete' && !ord.retail_stamp.present? }
-  before_update {|ord| ord.spree_send_created if ord.state == 'complete' && ord.state_changed? && !ord.retail_stamp.present? }
-  before_update {|ord| ord.spree_send_updated unless ord.retail_stamp_changed? }
+#  after_create {|ord| ord.spree_send if ord.state == 'complete' && !ord.retail_stamp.present? }
+#  before_update {|ord| ord.spree_send if ord.state == 'complete' && ord.state_changed? && !ord.retail_stamp.present? }
+#  before_update {|ord| ord.spree_send unless ord.retail_stamp_changed? }
 
   def spree_generate_order
     if user && !RETAIL.customers_get(user.id).response['success']
@@ -82,17 +82,17 @@ Spree::Order.class_eval do
   end
 
   def spree_send_created
-    unless RetailImport.check_order(id)
-      ord = self.spree_generate_order
-      RETAIL.orders_create(ord).response
-      self.retail_stamp = Time.now
-    end
+    ord = self.spree_generate_order
+    RETAIL.orders_create(ord).response
+    self.retail_stamp = Time.now
   end
 
   def spree_send_updated
-    if RetailImport.check_order(id)
-      ord = self.spree_generate_order
-      RETAIL.orders_edit(ord).response
-    end
+    ord = self.spree_generate_order
+    RETAIL.orders_edit(ord).response
+  end
+
+  def spree_send
+    RetailImport.check_order(id) ? spree_send_created : spree_send_updated
   end
 end
