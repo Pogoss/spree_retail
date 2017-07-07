@@ -8,33 +8,35 @@ module Spree
       user = {
           externalId: id,
           email: email,
+          createdAt: created_at.strftime('%Y-%m-%d %T')
       }
-      if ship_address
-        user[:firstName] = ship_address.firstname
-        user[:lastName] = ship_address.lastname
-        user[:address] = {text: ship_address.address1, index: ship_address.zipcode}
-        user[:phones] = [ { number: ship_address.phone } ]
-      end
-      if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name)
-        user[:firstName] = first_name unless user[:firstName].present?
-        user[:lastName] = last_name unless user[:lastName].present?
-        user[:phones] = [ { number: phone } ] if phone.present?
-      end
+      user[:sex] = (self.gender == 1) ? 'female' : 'male' if self.gender != 0
+      user[:firstName] = self.first_name if self.first_name.present?
+      user[:lastName] = self.last_name if self.last_name.present?
+      phne = self.phone || u.orders.complete.last.try(:bill_address).try(:phone)
+      user[:phones] = [ { number: phne } ] if phne.present?
+      addr = last_used_address || addresses.first
+      user[:address] = { text: addr.to_s, index: addr.zipcode } if addr.present?
       user
     end
 
     def spree_send_created
       unless RetailImport.check_user(id)
-        ord = self.spree_generate_customer
-        RETAIL.customers_create(ord).response
+        user = self.spree_generate_customer
+        RETAIL.customers_create(user).response
       end
     end
 
     def spree_send_updated
       if RetailImport.check_user(id)
-        ord = self.spree_generate_customer
-        RETAIL.customers_edit(ord).response
+        user = self.spree_generate_customer
+        RETAIL.customers_edit(user).response
       end
+    end
+
+    def spree_send
+      user = self.spree_generate_customer
+      (RetailImport.check_user(id) ? RETAIL.customers_create(user) : RETAIL.customers_create(user)).response
     end
 
   end

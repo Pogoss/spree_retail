@@ -9,7 +9,7 @@ module Spree
         @retail_states = RETAIL.statuses.response['statuses'].map{|k, v| [v['name'], k]}
         @payment_states = RETAIL.payment_statuses.response['paymentStatuses'].map{|k, v| [v['name'], k]}
         @payment_types = RETAIL.payment_types.response['paymentTypes'].map{|k, v| [v['name'], k]}
-        @delivery_types = RETAIL.delivery_types.response['deliveryTypes'].map{|k, v| [v['code'], k]}
+        @delivery_types = RETAIL.delivery_types.response['deliveryTypes'].map{|k, v| [v['name'], v['code']]}
         @user = Spree::User.new
       end
 

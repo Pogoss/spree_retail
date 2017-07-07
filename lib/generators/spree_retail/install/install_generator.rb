@@ -14,23 +14,20 @@ module SpreeRetail
         inject_into_file 'vendor/assets/stylesheets/spree/backend/all.css', " *= require spree/backend/spree_retail\n", :before => /\*\//, :verbose => true
       end
 
-      # def add_migrations
-      #   run 'bundle exec rake railties:install:migrations FROM=spree_retail'
-      # end
-      #
-      # def run_migrations
-      #   run_migrations = options[:auto_run_migrations] || ['', 'y', 'Y'].include?(ask 'Would you like to run the migrations now? [Y/n]')
-      #   if run_migrations
-      #     run 'bundle exec rake db:migrate'
-      #   else
-      #     puts 'Skipping rake db:migrate, don\'t forget to run it!'
-      #   end
-      # end
+      def add_migrations
+        run 'bundle exec rake railties:install:migrations FROM=spree_retail'
+      end
+      
+      def run_migrations
+        run_migrations = options[:auto_run_migrations] || ['', 'y', 'Y'].include?(ask 'Would you like to run the migrations now? [Y/n]')
+        if run_migrations
+          run 'bundle exec rake db:migrate'
+        else
+          puts 'Skipping rake db:migrate, don\'t forget to run it!'
+        end
+      end
 
       def add_retail_initializer
-        # copy_file 'retail_credentials.rb', 'config/initializers/retail_credentials.rb'
-        # add_migrations
-        # run_migrations
         name = ask('Enter your CRM url (e.g. https://your_crm_name.retailcrm.pro):')
         api_key = ask('Enter your CRM api key:')
         if name.present? && api_key.present?
