@@ -1,6 +1,5 @@
 Spree::Core::Engine.routes.draw do
-  # Add your extension routes here
-  # get '/sale' => 'home#sale'
+
   namespace :admin do
     resources :retail do
       collection do
@@ -15,6 +14,14 @@ Spree::Core::Engine.routes.draw do
       end
     end
   end
+
+  resources :products do
+    collection do
+      get :icml_catalog
+    end
+  end
+
   post '/retail/retail_update_order' => 'retail_callback#retail_update_order'
   post '/retail/retail_update_user' => 'retail_callback#retail_update_user'
+
 end
