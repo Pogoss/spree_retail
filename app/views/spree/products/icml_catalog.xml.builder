@@ -16,8 +16,8 @@ cache @etag do
         @products.each do |p|
           if p.has_variants? && p.taxons.any?
             p.variants.each do |v|
-#              xml.offer(id: v.id, productId: p.id, quantity: v.total_on_hand) do
-              xml.offer(id: v.id, productId: v.id, quantity: v.total_on_hand) do
+              xml.offer(id: v.id, productId: p.id, quantity: v.total_on_hand) do
+#              xml.offer(id: v.id, productId: v.id, quantity: v.total_on_hand) do
                 xml.url color_product_url(p, color: v.options[:color][:slug])
                 xml.price v.price
                 xml.purchasePrice v.cost_price || v.price
@@ -25,8 +25,8 @@ cache @etag do
                 xml.picture variant_image_url(v, :large, :protocol => :request)
                 xml.name v.name
                 xml.productName p.name
-#                xml.param(p.sku, name: Spree.t(:sku), code: 'article') if p.sku.present?
-                xml.param(v.sku, name: Spree.t(:sku), code: 'article') if v.sku.present?
+                xml.param(p.sku, name: Spree.t(:sku), code: 'article') if p.sku.present?
+#                xml.param(v.sku, name: Spree.t(:sku), code: 'article') if v.sku.present?
                 xml.param(v.description, name: Spree.t(:description), code: 'description') unless v.description.blank?
                 xml.param(v.weight, name: Spree.t(:weight), code: 'weight') if v.weight > 0
                 v.options.each do |option, values|
