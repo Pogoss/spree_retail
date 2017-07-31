@@ -1,8 +1,7 @@
 module Spree
   User.class_eval do
 
-#    after_create {|usr| usr.spree_send unless usr.retail_stamp.present? }
-#    after_update {|usr| usr.spree_send unless usr.retail_stamp.present? }
+    after_save :spree_send
 
     def spree_generate_customer
       user = {
@@ -31,7 +30,7 @@ module Spree
     end
 
     def spree_send
-      RetailImport.check_user(id) ? spree_send_created : spree_send_updated
+      RetailImport.check_user(id) ? spree_send_updated : spree_send_created
     end
 
   end

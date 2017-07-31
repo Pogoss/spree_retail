@@ -1,16 +1,28 @@
 <%= form_for :state, url: update_states_admin_retail_index_path do |st| %>
+  <div class="row">
     <div class="col-md-4">
-      <h4>Order Payment Methods:</h4>
-      <%= st.fields_for :payment_method do |p|%>
-          <% Spree::PaymentMethod.pluck(:name).each do |payment_method| %>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h1 class="panel-title">
+            Методы оплаты
+          </h1>
+        </div>
+        <div class="panel-body">
+          <%= st.fields_for :payment_method do |p|%>
+            <% Spree::PaymentMethod.all.each do |payment_method| %>
               <div class="form-group">
-                <%= p.label payment_method %>
-                <%= p.select payment_method, options_for_select(@payment_types, Spree::Config[:payment_method] && Spree::Config[:payment_method][payment_method]), {include_blank: true}, class: 'form-control' %>
+                <%= p.label payment_method.id, payment_method.name %>
+                <%= p.select payment_method.id, options_for_select(@payment_types, Spree::Config[:payment_method] && Spree::Config[:payment_method][payment_method.id.to_s]), {include_blank: true}, class: 'form-control' %>
               </div>
+            <% end %>
           <% end %>
-      <% end %>
+        </div>
+      </div>
     </div>
-    <div class="col-md-1 col-md-offset-11">
-      <%= submit_tag :update, class: 'form-control btn btn-success' %>
+  </div>
+  <div class="row">
+    <div class="form-actions col-md-4" data-hook="buttons">
+      <button name="button" type="submit" class="btn btn-primary "><span class="icon icon-save"></span> Изменить</button>
     </div>
+  </div>    
 <% end %>

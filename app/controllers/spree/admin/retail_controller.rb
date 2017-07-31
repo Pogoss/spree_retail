@@ -2,14 +2,12 @@ module Spree
   module Admin
     class RetailController < Spree::Admin::BaseController
       helper 'spree/admin/navigation'
-      layout '/spree/layouts/admin'
-
 
       def index
-        @retail_states = RETAIL.statuses.response['statuses'].map{|k, v| [v['name'], k]}
-        @payment_states = RETAIL.payment_statuses.response['paymentStatuses'].map{|k, v| [v['name'], k]}
-        @payment_types = RETAIL.payment_types.response['paymentTypes'].map{|k, v| [v['name'], k]}
-        @delivery_types = RETAIL.delivery_types.response['deliveryTypes'].map{|k, v| [v['name'], v['code']]}
+        @retail_states = RETAIL.statuses.response['statuses'].reject{|k, v| !v['active']}.map{|k, v| [v['name'], k]}
+        @payment_states = RETAIL.payment_statuses.response['paymentStatuses'].reject{|k, v| !v['active']}.map{|k, v| [v['name'], k]}
+        @payment_types = RETAIL.payment_types.response['paymentTypes'].reject{|k, v| !v['active']}.map{|k, v| [v['name'], k]}
+        @delivery_types = RETAIL.delivery_types.response['deliveryTypes'].reject{|k, v| !v['active']}.map{|k, v| [v['name'], v['code']]}
         @user = Spree::User.new
       end
 

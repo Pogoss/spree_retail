@@ -272,14 +272,15 @@ class RetailImport
     elsif options[:delivery_method]
       Spree::Config[:delivery_method] = options[:delivery_method]
     else
-      options['shipment'].each{|k,v| v.delete('')}
       Spree::Config[:state_connection] = options
     end
   end
 
   def self.export_all_orders
     existing_orders = RETAIL.orders.response['orders'].map{|o| o['externalId']}
-    Spree::Order.where.not(id: existing_orders).each do |order|
+    Spree::Order.where.not(id: existing_orders).
+      limit(15).order(id: :desc).
+      each do |order|
       order.spree_send_created
     end
   end

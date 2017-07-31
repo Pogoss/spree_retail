@@ -1,98 +1,99 @@
 Spree::Order.class_eval do
-#  after_create {|ord| ord.spree_send if ord.state == 'complete' && !ord.retail_stamp.present? }
-#  before_update {|ord| ord.spree_send if ord.state == 'complete' && ord.state_changed? && !ord.retail_stamp.present? }
-#  before_update {|ord| ord.spree_send unless ord.retail_stamp_changed? }
+
+  after_save :spree_send
 
   def spree_generate_order
-    if user && !RETAIL.customers_get(user.id).response['success']
-      user.spree_send_created
-    end
-    order = {
-        externalId: id,
-        number: number,
-        email: email,
-        createdAt: created_at.strftime('%Y-%m-%d %T'),
-        paymentStatus: payment_state,
-        customerComment: comment,
-        customer: {
-            externalId: user && user.id
-        }
+
+    user.spree_send
+    order = 
+    {
+      externalId: id,
+      number: number,
+      email: email,
+      createdAt: created_at.strftime('%Y-%m-%d %T'),
+      phone: bill_address.try(:phone) || user.phone,
+      firstName: bill_address.try(:first_name) || user.first_name,
+      lastName: bill_address.try(:last_name) || user.last_name,
+      customerComment: comment,
+      customer: { externalId: user.id },
+      call: need_call==1,
+#      shipped: shipped?,
+      status: 'new',
+      discountManualAmount: (line_item_adjustments.nonzero.promotion.eligible.sum(:amount) + adjustments.nonzero.promotion.eligible.sum(:amount)).to_f * -1
     }
-    if adjustments.present?
-      adjustments.each do |adj|
-        order[:discount] = adj.amount * -1
-      end
-    end
-    order[:phone] = bill_address.phone if bill_address && bill_address.phone.present?
-    if ship_address
-      order[:firstName] = bill_address.firstname
-      order[:lastName] = bill_address.lastname
-    end
-    if ActiveRecord::Base.connection.column_exists?(:spree_users, :first_name) && user && !order[:firstName].present?
-      order[:firstName] = user.first_name
-      order[:lastName] = user.last_name
-    end
-    if user && user.ship_address && !order[:firstName].present?
-      order[:firstName] = user.ship_address.firstname
-      order[:lastName] = user.ship_address.lastname
-    end
-    if Spree::Config[:state_connection]['shipment'].present? && shipment_state
-      order[:status] = Spree::Config[:state_connection]['shipment'][shipment_state] && Spree::Config[:state_connection]['shipment'][shipment_state].first
-    else
-      order[:status] = 'new'
-    end
-    if Spree::Config[:state_connection]['payment'].present? && payment_state
-      order[:paymentStatus] = Spree::Config[:state_connection]['payment'][payment_state]
-    end
-    if Spree::Config[:payment_method].present? && payments.present?
-      payment_method_name = payments.last.payment_method && payments.last.payment_method.name
-      order[:paymentType] = Spree::Config[:payment_method][payment_method_name]
-      order[:paymentStatus] = Spree::Config[:state_connection]['payment'][payments.last.state]
-    end
+
     if Spree::Config[:delivery_method].present? && shipments.present?
-      shipment_method_name = shipments.last.shipping_method && shipments.last.shipping_method.name
-      shipping_cost = shipments.last.cost
-      if shipments.last.adjustments.present?
-        shipments.last.adjustments.each do |adj|
-          shipping_cost = shipping_cost + adj.amount
+      code = Spree::Config[:delivery_method][shipments.first.shipping_method.id.to_s]
+      if code.present? 
+        order[:delivery] = 
+        {
+          code: code,
+          cost: (shipment_total-shipping_discount).to_f,
+          address: {}
+        }
+        if bill_address
+          order[:delivery][:address][:text] = bill_address.addr
+          order[:delivery][:address][:index] = bill_address.zipcode
+        end
+        if shipment_date.present?
+          order[:delivery][:date] = shipment_date.strftime('%Y-%m-%d') 
+          order[:delivery][:time] = 
+          {
+            from: shipment_range.lo_time,
+            to: shipment_range.hi_time
+          } if shipment_range.present?
         end
       end
-      order[:delivery] = {
-          code: Spree::Config[:delivery_method][shipment_method_name],
-          cost: shipping_cost,
-          address: {}
-      }
-      if bill_address
-        retail_clean_order_address
-        order[:delivery][:address][:text] = "#{bill_address.city} #{bill_address.zipcode} #{bill_address.address1} #{bill_address.address2}"
-      end
     end
+
+    order[:status] = Spree::Config[:state_connection]['order'][sstatus] if Spree::Config[:state_connection]['order'].present? && Spree::Config[:state_connection]['order'].key?(sstatus)
+
+    if payments.present?
+        order[:payments] = []
+        payments.each do |payment|
+          p = 
+          {
+             externalId: payment.id,
+             amount: payment.amount.to_f,
+             paidAt: payment.updated_at.strftime('%Y-%m-%d %T') 
+          }
+          p[:status] = Spree::Config[:state_connection]['payment'][payment.state] if Spree::Config[:state_connection]['payment'].present? && Spree::Config[:state_connection]['payment'].key?(payment.state)
+          p[:type] = Spree::Config[:payment_method][payment.payment_method.id.to_s] if Spree::Config[:payment_method].present? && Spree::Config[:payment_method].key?(payment.payment_method.id.to_s)
+          order[:payments] << p
+        end
+    end
+
     order[:items] = []
     line_items.each do |ln|
-      order[:items] << {initialPrice: ln.price, quantity: ln.quantity, productName: ln.name, productId: ln.variant_id}
+      order[:items] << 
+      { 
+        initialPrice: ln.price.to_f, 
+        purchasePrice: (ln.cost_price || ln.price).to_f,
+        quantity: ln.quantity, 
+        productName: ln.name, 
+        offer: { externalId: ln.variant_id } 
+      }
     end
     order
   end
 
-  def retail_clean_order_address
-    if id
-      clean_order = {externalId: id, customer: {externalId: user && user.id}, delivery: {address: {index: '', region: '', city: '', street: '', building: '', text: ''}}}
-      RETAIL.orders_edit(clean_order)
+  def spree_send_created
+    if complete?
+      ord = self.spree_generate_order
+      RETAIL.orders_create(ord).response
     end
   end
 
-  def spree_send_created
-    ord = self.spree_generate_order
-    RETAIL.orders_create(ord).response
-    self.retail_stamp = Time.now
-  end
-
   def spree_send_updated
-    ord = self.spree_generate_order
-    RETAIL.orders_edit(ord).response
+    if complete?
+      ord = self.spree_generate_order
+      RETAIL.orders_edit(ord).response
+    end
   end
 
   def spree_send
-    RetailImport.check_order(id) ? spree_send_created : spree_send_updated
+    if complete?
+      RetailImport.check_order(id) ? spree_send_updated : spree_send_created 
+    end
   end
 end
