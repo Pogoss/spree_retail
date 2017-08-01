@@ -4,8 +4,9 @@ Spree::Order.class_eval do
 
   def spree_generate_order
 Rails.logger.info "*** spree_generate_order"
+Rails.logger.info previous_changes.inspect
 Rails.logger.info caller.join("\n")
-    user.spree_send
+    user.spree_send_if_not_exists
     order = 
     {
       externalId: id,

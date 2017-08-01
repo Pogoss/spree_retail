@@ -33,5 +33,9 @@ module Spree
       RetailImport.check_user(id) ? spree_send_updated : spree_send_created
     end
 
+    def spree_send_if_not_exists
+       spree_send_created unless RetailImport.check_user(id)
+    end
+
   end
 end
