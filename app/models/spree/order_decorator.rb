@@ -1,10 +1,11 @@
 Spree::Order.class_eval do
 
-  before_update :spree_send
+  after_commit :spree_send
 
   def spree_generate_order
 Rails.logger.info "*** spree_generate_order"
 Rails.logger.info self.changed.inspect
+Rails.logger.info self.previous_changes.inspect
 Rails.logger.info caller.join("\n")
     user.spree_send_if_not_exists
     order = 
