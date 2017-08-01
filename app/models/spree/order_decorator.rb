@@ -19,7 +19,7 @@ Spree::Order.class_eval do
       call: need_call==1,
 #      shipped: shipped?,
       status: 'new',
-      discountManualAmount: (line_item_adjustments.nonzero.promotion.eligible.sum(:amount) + adjustments.nonzero.promotion.eligible.sum(:amount)).to_f * -1
+      discountManualAmount: (line_item_adjustments.nonzero.eligible.sum(:amount) + adjustments.nonzero.eligible.sum(:amount)).to_f * -1
     }
 
     if Spree::Config[:delivery_method].present? && shipments.present?
@@ -79,8 +79,18 @@ Spree::Order.class_eval do
 
   def spree_send_created
     if complete?
-      ord = self.spree_generate_order
-      RETAIL.orders_create(ord).response
+      op = RETAIL.orders_create(self.spree_generate_order)
+      if op.is_successfull? && payments.present?
+        op = RETAIL.orders_get( id )
+        op.response["order"]["payments"].each do |key,value|
+          payment = payments.find_by(id: value["externalId"])
+          if payment.present?
+            payment.update_columns( retail_id: key )
+          else
+            RETAIL.payments_delete( key )
+          end
+        end if op.is_successfull?
+      end
     end
   end
 
