@@ -1,7 +1,7 @@
 module Spree
   User.class_eval do
 
-    after_commit :spree_send
+    after_save :spree_send
 
     def spree_generate_customer
       user = {

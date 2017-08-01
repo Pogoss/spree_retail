@@ -1,6 +1,6 @@
 module Spree
   Shipment.class_eval do
-    after_commit :send_spree_order, unless: :retail_update
+    after_save :send_spree_order, unless: :retail_update
 
     attr_accessor :retail_update
 
