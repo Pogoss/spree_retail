@@ -3,7 +3,8 @@ Spree::Order.class_eval do
   after_save :spree_send
 
   def spree_generate_order
-
+Rails.logger.info "*** spree_generate_order"
+Rails.logger.info caller.join("\n")
     user.spree_send
     order = 
     {
