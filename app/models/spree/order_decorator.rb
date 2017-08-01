@@ -1,6 +1,6 @@
 Spree::Order.class_eval do
 
-  after_save :spree_send
+  after_commit :spree_send
 
   def spree_generate_order
 Rails.logger.info "*** spree_generate_order"
