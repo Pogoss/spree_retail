@@ -8,7 +8,7 @@ module Spree
       p = 
       {
         amount: amount.to_f,
-        paidAt: created_at.strftime('%Y-%m-%d %T'),
+        paidAt: updated_at.strftime('%Y-%m-%d %T'),
         order: { externalId: order.id }
       }
       p[:status] = Spree::Config[:state_connection]['payment'][state] if Spree::Config[:state_connection]['payment'].present? && Spree::Config[:state_connection]['payment'].key?(state)

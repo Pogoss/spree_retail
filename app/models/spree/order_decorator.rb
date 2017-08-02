@@ -3,11 +3,6 @@ Spree::Order.class_eval do
   after_commit :spree_send
 
   def spree_generate_order
-Rails.logger.info "*** spree_generate_order"
-Rails.logger.info self.changed.inspect
-Rails.logger.info self.previous_changes.inspect
-Rails.logger.info caller.join("\n")
-    user.spree_send_if_not_exists
     order = 
     {
       externalId: id,
@@ -51,21 +46,6 @@ Rails.logger.info caller.join("\n")
 
     order[:status] = Spree::Config[:state_connection]['order'][sstatus] if Spree::Config[:state_connection]['order'].present? && Spree::Config[:state_connection]['order'].key?(sstatus)
 
-    if payments.present?
-        order[:payments] = []
-        payments.each do |payment|
-          p = 
-          {
-             externalId: payment.id,
-             amount: payment.amount.to_f,
-             paidAt: payment.updated_at.strftime('%Y-%m-%d %T') 
-          }
-          p[:status] = Spree::Config[:state_connection]['payment'][payment.state] if Spree::Config[:state_connection]['payment'].present? && Spree::Config[:state_connection]['payment'].key?(payment.state)
-          p[:type] = Spree::Config[:payment_method][payment.payment_method.id.to_s] if Spree::Config[:payment_method].present? && Spree::Config[:payment_method].key?(payment.payment_method.id.to_s)
-          order[:payments] << p
-        end
-    end
-
     order[:items] = []
     line_items.each do |ln|
       order[:items] << 
@@ -77,36 +57,70 @@ Rails.logger.info caller.join("\n")
         offer: { externalId: ln.variant_id } 
       }
     end
-    order
+
+    digest = Digest::MD5.hexdigest(order.to_json)
+    if digest!=self.retail_digest
+      if payments.present?
+          order[:payments] = []
+          payments.each do |payment|
+            p = 
+            {
+               externalId: payment.id,
+               amount: payment.amount.to_f,
+               paidAt: payment.updated_at.strftime('%Y-%m-%d %T') 
+            }
+            p[:status] = Spree::Config[:state_connection]['payment'][payment.state] if Spree::Config[:state_connection]['payment'].present? && Spree::Config[:state_connection]['payment'].key?(payment.state)
+            p[:type] = Spree::Config[:payment_method][payment.payment_method.id.to_s] if Spree::Config[:payment_method].present? && Spree::Config[:payment_method].key?(payment.payment_method.id.to_s)
+            order[:payments] << p
+          end
+      end
+      user.spree_send_if_not_exists
+    else
+      order = nil
+    end
+
+    { order: order, digest: digest }
   end
 
-  def spree_send_created
+  def spree_send_created( info = nil )
     if complete?
-      op = RETAIL.orders_create(self.spree_generate_order)
-      if op.is_successfull? && payments.present?
-        op = RETAIL.orders_get( id )
-        op.response["order"]["payments"].each do |key,value|
-          payment = payments.find_by(id: value["externalId"])
-          if payment.present?
-            payment.update_columns( retail_id: key )
-          else
-            RETAIL.payments_delete( key )
+      info = info || self.spree_generate_order
+      if info[:order].present?
+        op = RETAIL.orders_create(info[:order])
+        if op.is_successfull? 
+          if payments.present?
+            op = RETAIL.orders_get( id )
+            op.response["order"]["payments"].each do |key,value|
+              payment = payments.find_by(id: value["externalId"])
+              if payment.present?
+                payment.update_columns( retail_id: key )
+              else
+                RETAIL.payments_delete( key )
+              end
+            end if op.is_successfull?
           end
-        end if op.is_successfull?
+        end
+        update_columns(retail_digest: info[:digest])
       end
     end
   end
 
-  def spree_send_updated
+  def spree_send_updated( info = nil )
     if complete?
-      ord = self.spree_generate_order
-      RETAIL.orders_edit(ord).response
+      info = info || self.spree_generate_order
+      if info[:order].present?
+        op = RETAIL.orders_edit(info[:order])
+        update_columns(retail_digest: info[:digest]) if op.is_successfull? 
+      end
     end
   end
 
   def spree_send
     if complete?
-      RetailImport.check_order(id) ? spree_send_updated : spree_send_created 
+      info = self.spree_generate_order
+      if info[:order].present?
+        RetailImport.check_order(id) ? spree_send_updated(info) : spree_send_created(info) 
+      end
     end
   end
 end
