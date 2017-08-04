@@ -15,9 +15,8 @@ Spree::Order.class_eval do
       customerComment: comment,
       customer: { externalId: user.id },
       call: need_call==1,
-#      shipped: shipped?,
       status: 'new',
-      discountManualAmount: (line_item_adjustments.nonzero.eligible.sum(:amount) + adjustments.nonzero.eligible.sum(:amount)).to_f * -1
+      discountManualAmount: adjustments.nonzero.eligible.sum(:amount).to_f * -1
     }
 
     if Spree::Config[:delivery_method].present? && shipments.present?
@@ -48,14 +47,16 @@ Spree::Order.class_eval do
 
     order[:items] = []
     line_items.each do |ln|
-      order[:items] << 
-      { 
+      item = { 
         initialPrice: ln.price.to_f, 
         purchasePrice: (ln.cost_price || ln.price).to_f,
         quantity: ln.quantity, 
         productName: ln.name, 
         offer: { externalId: ln.variant_id } 
       }
+      adj = line_item_adjustments.nonzero.eligible.find_by(adjustable_id: ln)
+      item[:discountManualAmount] = adj.amount.to_f/ln.quantity * -1 if adj.present?
+      order[:items] << item
     end
 
     digest = Digest::MD5.hexdigest(order.to_json)

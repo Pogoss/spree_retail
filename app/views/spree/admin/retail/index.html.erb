@@ -26,6 +26,8 @@
           <%#= link_to 'Импорт заказов', import_orders_admin_retail_index_path, class: 'list-group-item list-group-item-success' %>
           <%= link_to 'Экспорт заказов', export_all_orders_admin_retail_index_path, class: 'list-group-item list-group-item-info' %>
           <%= link_to 'Экспорт клиентов', export_all_customers_admin_retail_index_path, class: 'list-group-item list-group-item-info' %>
+          <%= link_to 'Очистить кеш заказов', clear_all_orders_cache_admin_retail_index_path, class: 'list-group-item list-group-item-warning' %>
+          <%= link_to 'Очистить кеш клиентов', clear_all_customers_cache_admin_retail_index_path, class: 'list-group-item list-group-item-warning' %>
         </div>
       </div>
     </div>

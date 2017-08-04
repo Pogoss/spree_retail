@@ -7,6 +7,8 @@ Spree::Core::Engine.routes.draw do
         get :import_orders
         get :export_all_orders
         get :export_all_customers
+        get :clear_all_orders_cache
+        get :clear_all_customers_cache
         post :retail_update_order
         post :retail_update_user
         # get :states_connection

@@ -54,6 +54,18 @@ module Spree
         redirect_to :back
       end
 
+      def clear_all_customers_cache
+        RetailImport.clear_all_customers_cache
+        flash[:notice] = 'Successfully cleared'
+        redirect_to :back
+      end
+
+      def clear_all_orders_cache
+        RetailImport.clear_all_orders_cache
+        flash[:notice] = 'Successfully cleared'
+        redirect_to :back
+      end
+
     end
   end
 end

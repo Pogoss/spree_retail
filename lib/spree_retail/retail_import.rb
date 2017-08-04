@@ -292,6 +292,14 @@ class RetailImport
     end
   end
 
+  def self.clear_all_customers_cache
+    Spree::User.update_all(retail_digest: nil)
+  end
+
+  def self.clear_all_orders_cache
+    Spree::Order.update_all(retail_digest: nil)
+  end
+
   def self.check_order(id)
     begin
       RETAIL.orders_get(id, 'externalId').response['success']
