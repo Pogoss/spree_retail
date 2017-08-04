@@ -87,20 +87,7 @@ Spree::Order.class_eval do
       info = info || self.spree_generate_order
       if info[:order].present?
         op = RETAIL.orders_create(info[:order])
-        if op.is_successfull? 
-          if payments.present?
-            op = RETAIL.orders_get( id )
-            op.response["order"]["payments"].each do |key,value|
-              payment = payments.find_by(id: value["externalId"])
-              if payment.present?
-                payment.update_columns( retail_id: key )
-              else
-                RETAIL.payments_delete( key )
-              end
-            end if op.is_successfull?
-          end
-        end
-        update_columns(retail_digest: info[:digest])
+        update_columns(retail_digest: info[:digest]) if op.is_successfull? 
       end
     end
   end
@@ -113,6 +100,17 @@ Spree::Order.class_eval do
         update_columns(retail_digest: info[:digest]) if op.is_successfull? 
       end
     end
+  end
+
+  def spree_send_if_not_exists
+    if complete?
+      info = self.spree_generate_order
+      if info[:order].present? && !RetailImport.check_order(id)
+        spree_send_created(info) 
+        return(true)
+      end
+    end
+    false
   end
 
   def spree_send

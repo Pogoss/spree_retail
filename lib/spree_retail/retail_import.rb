@@ -54,7 +54,7 @@ class RetailImport
       if ActiveRecord::Base.connection.column_exists?(:spree_users, :last_name)
         user.last_name = customer['lastName']
       end
-      user.retail_stamp = Time.now
+#      user.retail_stamp = Time.now
       if user.save
         RETAIL.customers_fix_external_ids([{id: customer['id'], externalId: user.id}])
       end
@@ -100,14 +100,14 @@ class RetailImport
       spree_order.created_by = Spree::User.admin.first
     end
     add_states_to_order(spree_order, order['status'], order['paymentStatus'])
-    spree_order.retail_stamp = Time.now
+#    spree_order.retail_stamp = Time.now
     if spree_order.save
       RETAIL.orders_fix_external_ids([{id: order['id'], externalId: spree_order.id}])
     end
   end
 
   def self.update_order(order, existing_order)
-    existing_order.retail_stamp = Time.now
+#    existing_order.retail_stamp = Time.now
     existing_order.number = order['number'] if order['number']
     # existing_order.item_total = order['summ'] if order['summ']
     # existing_order.total = order['totalSumm'] if order['totalSumm']
@@ -235,7 +235,7 @@ class RetailImport
 
 
     add_states_to_order(existing_order, order['status'], order['paymentStatus'])
-    existing_order.retail_stamp = Time.now
+#    existing_order.retail_stamp = Time.now
     if existing_order.save
       RETAIL.orders_fix_external_ids([{id: order['id'], externalId: existing_order.id}])
     end
