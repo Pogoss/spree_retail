@@ -1,7 +1,7 @@
 module Spree
   Payment.class_eval do
-    after_create :send_spree_created
-    before_update :send_spree_updated
+    after_create :spree_send_created
+    before_update :spree_send_updated
 
     def spree_generate_payment
       p = 
