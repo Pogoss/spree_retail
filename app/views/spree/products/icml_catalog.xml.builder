@@ -19,7 +19,7 @@ cache @etag do
             xml.price v.price
             xml.purchasePrice v.cost_price || v.price
             xml.categoryId v.product.taxons.first.id if v.product.taxons.any?
-            xml.picture variant_image_url(v, :large, :protocol => :request)
+            xml.picture image_path(variant_image_url(v, :large), :protocol => :request)
             xml.name v.name
             xml.productName v.name
             xml.param(v.product.sku, name: Spree.t(:sku), code: 'article') if v.product.sku.present?
